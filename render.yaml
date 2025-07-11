@@ -1,14 +1,9 @@
 services:
   - type: web
     name: miagenda
-    runtime: python
-    buildCommand: ""
+    env: python
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
-      - key: FLASK_ENV
-        value: production
-      - key: SUPABASE_URL
-        value: https://<tu-url>.supabase.co
-      - key: SUPABASE_KEY
-        value: <tu-clave>
-    plan: free
+      - key: PYTHON_VERSION
+        value: 3.11
