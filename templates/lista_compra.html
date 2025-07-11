@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de la compra</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/lista_compra.css') }}">
+
+  <script type="module" src="{{ url_for('static', filename='js/lista_compra.js') }}"></script>
+</head>
+<body>
+  <h1>🛒 Lista de la compra</h1>
+  <button id="agregar-completados-despensa">🛒 Pasar a despensa</button>
+
+
+  <form id="form-lista">
+    <input type="text" id="nombre-item" placeholder="Ingrediente" required />
+    <input type="number" id="cantidad-item" placeholder="Cantidad" required />
+    <select id="unidad-item">
+      <option value="g">g</option>
+      <option value="ml">ml</option>
+      <option value="ud">ud</option>
+    </select>
+    <button type="submit">Añadir</button>
+  </form>
+
+  <hr>
+
+  <section id="lista-compra-container">
+    <p>Cargando lista...</p>
+  </section>
+</body>
+</html>
