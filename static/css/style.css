@@ -28,15 +28,16 @@ body {
 }
 
 /* ================== 🧾 SECCIONES ================== */
-section.main-section {
+  section.main-section {
+    width: 100% - 5px); /* deja 10px de margen a cada lado */
+    max-width: 480px;
+    margin: 10px auto; /* separación vertical entre módulos */
+    padding: 20px;
     background-color: #1E1E1E;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
-    margin-bottom: 20px;
-    padding: 20px;
-    width: 100%;
-    max-width: 480px;
-}
+    box-sizing: border-box;
+  }
 
 h2 {
     color: #FFFFFF;
@@ -374,13 +375,26 @@ form select {
   margin-top: 0.5rem;
 }
 
+.dias-checkboxes .dias-semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7 columnas iguales */
+  gap: 6px;
+  justify-items: center;
+}
+
 .dias-semana label {
-  background-color: #e0f2ff;
-  padding: 0.4rem 0.8rem;
-  border-radius: 1rem;
-  font-weight: 500;
+  background-color: #cceaff;
+  padding: 8px;
+  border-radius: 50px;
+  text-align: center;
+  font-weight: bold;
+  width: 100%;
+  max-width: 40px;
+  color: black;
   cursor: pointer;
 }
+
+
 
 
 /* Estilo de la lista de requisitos */
@@ -521,9 +535,39 @@ form select {
 }
 
 /* Asegura que los botones del formulario estén siempre en la parte inferior del contenido de la sección */
-#form-nueva-actividad .form-buttons {
-    margin-top: 20px; /* Añade espacio encima de los botones de acción */
+#form-nueva-actividad {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px 0;
 }
+
+/* Estilo adicional para días */
+.dias-semana {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  justify-content: center;
+}
+
+.dias-semana label {
+  background-color: #cceaff;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Opcional: resaltar los seleccionados */
+.dias-semana input[type="checkbox"]:checked + span {
+  font-weight: bold;
+  color: #007acc;
+}
+
 
 .btn-ver-mas {
   margin-top: 10px;
@@ -607,13 +651,15 @@ textarea {
 .form-grid-3cols {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 @media (max-width: 700px) {
   .form-grid-3cols {
-    grid-template-columns: 1fr;
-  }
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
 }
 
 .checkbox-group {
