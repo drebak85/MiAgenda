@@ -367,36 +367,38 @@ form select {
 
 
 /* Grupo de checkboxes para días de rutina */
-.dias-semana {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-  gap: 8px;
-  justify-content: center;
-  width: 100%;
-  box-sizing: border-box;
-  padding:
+.dias-semana-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
-.dias-semana label {
+
+.dias-fila {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.dias-fila label {
   background-color: #cceaff;
-  padding: 6px;
-  border-radius: 999px;
+  padding: 6px 12px;
+  border-radius: 50px;
   font-weight: bold;
   text-align: center;
   color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   min-width: 40px;
-  max-width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
 
-.dias-checkboxes .dias-semana {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr); /* 7 columnas iguales */
-  gap: 6px;
-  justify-items: center;
-}
+
+
+
 
 
 
@@ -548,24 +550,7 @@ form select {
 }
 
 /* Estilo adicional para días */
-.dias-semana {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 8px;
-  justify-content: center;
-}
 
-.dias-semana label {
-  background-color: #cceaff;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-weight: 500;
-  color: #000;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* Opcional: resaltar los seleccionados */
 .dias-semana input[type="checkbox"]:checked + span {
