@@ -191,11 +191,11 @@
     <input id="rutina-fecha" name="rutina_fecha" type="date"/>
   </div>
   <div class="form-group">
-    <label for="rutina-hora-inicio">Hora de Inicio:</label>
+    <label for="rutina-hora-inicio">Hora Inicio:</label>
     <input id="rutina-hora-inicio" name="rutina_hora_inicio" type="time"/>
   </div>
   <div class="form-group">
-    <label for="rutina-hora-fin">Hora de Fin:</label>
+    <label for="rutina-hora-fin">Hora Fin:</label>
     <input id="rutina-hora-fin" name="rutina_hora_fin" type="time"/>
   </div>
 </div>
@@ -203,14 +203,22 @@
 
  <div class="form-group dias-checkboxes">
   <label>Días:</label>
-  <div class="dias-semana">
+  <div class="dias-semana-wrapper">
+<div class="dias-semana-wrapper">
+  <div class="dias-fila">
     <label><input type="checkbox" name="rutina_dia_semana" value="Lunes"> L</label>
     <label><input type="checkbox" name="rutina_dia_semana" value="Martes"> M</label>
     <label><input type="checkbox" name="rutina_dia_semana" value="Miércoles"> X</label>
     <label><input type="checkbox" name="rutina_dia_semana" value="Jueves"> J</label>
+  </div>
+  <div class="dias-fila">
     <label><input type="checkbox" name="rutina_dia_semana" value="Viernes"> V</label>
     <label><input type="checkbox" name="rutina_dia_semana" value="Sábado"> S</label>
     <label><input type="checkbox" name="rutina_dia_semana" value="Domingo"> D</label>
+  </div>
+</div>
+
+
   </div>
 </div>
 
