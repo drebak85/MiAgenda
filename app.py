@@ -11,8 +11,8 @@ CORS(app)
 
 @app.route('/')
 def serve_index():
-    # Sirve index.html desde templates si quieres o directamente desde static si lo tienes ahí
-    return render_template('index.html')
+    return render_template('index.html', cargar_add_activity=True)
+
 
 @app.route("/despensa")
 def despensa():
@@ -31,6 +31,11 @@ def serve_citas():
 @app.route("/lista-compra")
 def lista_compra():
     return render_template("lista_compra.html")
+
+@app.route("/agenda")
+def alimentacion():
+    return render_template('alimentacion.html', cargar_add_activity=False)
+
 
 @app.route('/menu')
 def menu():

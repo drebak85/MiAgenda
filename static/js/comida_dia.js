@@ -1,4 +1,6 @@
 import { supabase } from './supabaseClient.js';
+import { calcularTotalesReceta } from '../utils/calculos_ingredientes.js';
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const contenedor = document.getElementById('comida-container');
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function cargarComidaDelDia() {
     const hoy = new Date().toISOString().split('T')[0];
 
+    // Consulta solo recetas + ingredientes_receta (sin intentar join a ingredientes_base)
     const { data, error } = await supabase
       .from('comidas_dia')
       .select(`
@@ -31,38 +34,27 @@ document.addEventListener('DOMContentLoaded', () => {
         recetas (
           nombre,
           ingredientes_receta (
-            cantidad, unidad,
-            ingredientes (
-              description, calorias, precio, proteinas
-            )
+            cantidad, unidad, ingrediente_id
           )
         )
       `)
       .eq('fecha', hoy)
       .eq('tipo', tipoActual);
 
-    contenedor.innerHTML = ''; // limpiar
+    contenedor.innerHTML = '';
 
-  const slider = document.createElement('div');
-slider.classList.add('comida-tipo-header');
+    // Slider de navegación
+    const slider = document.createElement('div');
+    slider.classList.add('comida-tipo-header');
+    slider.innerHTML = `
+      <button class="flecha-roja" id="comida-prev">⬅</button>
+      <span class="titulo-comida">🍽️ ${tipoActual} del día</span>
+      <button class="flecha-roja" id="comida-next">➡</button>
+    `;
+    contenedor.appendChild(slider);
 
-const btnPrev = document.createElement('button');
-btnPrev.innerHTML = '⬅';
-btnPrev.classList.add('flecha-roja');
-btnPrev.onclick = () => cambiarTipo(-1);
-
-const tipoText = document.createElement('span');
-tipoText.textContent = `🍽️ ${tipoActual} del día`;
-tipoText.classList.add('titulo-comida');
-
-const btnNext = document.createElement('button');
-btnNext.innerHTML = '➡';
-btnNext.classList.add('flecha-roja');
-btnNext.onclick = () => cambiarTipo(1);
-
-slider.append(btnPrev, tipoText, btnNext);
-contenedor.appendChild(slider);
-
+    document.getElementById('comida-prev').onclick = () => cambiarTipo(-1);
+    document.getElementById('comida-next').onclick = () => cambiarTipo(1);
 
     if (error) {
       console.error('Error cargando comida:', error.message);
@@ -78,6 +70,22 @@ contenedor.appendChild(slider);
     const comida = data[0];
     const receta = comida.recetas;
 
+    // Obtener los IDs de ingredientes
+    const idsIngredientes = receta.ingredientes_receta.map(ing => ing.ingrediente_id);
+    let ingredientesMap = new Map();
+    if (idsIngredientes.length > 0) {
+      const { data: ingData, error: ingError } = await supabase
+        .from('ingredientes_base')
+        .select('id, description, precio, cantidad, calorias, proteinas, unidad')
+        .in('id', idsIngredientes);
+      if (ingError) {
+        console.error('Error cargando ingredientes_base:', ingError);
+      } else {
+        ingData.forEach(ing => ingredientesMap.set(ing.id, ing));
+      }
+    }
+
+    // Crear tarjeta
     const card = document.createElement('div');
     card.classList.add('comida-card');
 
@@ -100,32 +108,33 @@ contenedor.appendChild(slider);
 
     encabezado.append(nombre, toggle);
 
-    // Calcular totales
-    let totalCalorias = 0;
-    let totalPrecio = 0;
-    let totalProteinas = 0;
+    let totalCalorias = 0, totalPrecio = 0, totalProteinas = 0;
+const lista = document.createElement('ul');
+lista.classList.add('lista-ingredientes');
 
-    const lista = document.createElement('ul');
-    lista.classList.add('lista-ingredientes');
-    receta.ingredientes_receta.forEach(ing => {
-      const ingrediente = ing.ingredientes;
-      const cantidad = parseFloat(ing.cantidad);
-      const unidad = ing.unidad;
+receta.ingredientes_receta.forEach(ing => {
+  const ingBase = ingredientesMap.get(ing.ingrediente_id);
+  const cantidad = parseFloat(ing.cantidad);
+  const unidad = ing.unidad;
+  const li = document.createElement('li');
 
-      const li = document.createElement('li');
-      li.textContent = `${cantidad} ${unidad} de ${ingrediente.description}`;
-      lista.appendChild(li);
+  if (ingBase) {
+    li.textContent = `${cantidad} ${unidad} de ${ingBase.description}`;
+  } else {
+    li.textContent = `${cantidad} ${unidad} (ingrediente #${ing.ingrediente_id} no encontrado)`;
+  }
 
-     const cantidadBase = parseFloat(ingrediente.cantidad) || 1000;
-const precioUnitario = (ingrediente.precio || 0) / cantidadBase;
-totalPrecio += precioUnitario * cantidad;
+  lista.appendChild(li);
+});
 
-// Calorías y proteínas por cada 100 g
-totalCalorias += (ingrediente.calorias || 0) * (cantidad / 100);
-totalProteinas += (ingrediente.proteinas || 0) * (cantidad / 100);
+// Usamos la función centralizada
+const { totalCalorias: kcal, totalProteinas: prot, totalPrecio: precio } =
+  calcularTotalesReceta(receta.ingredientes_receta, Array.from(ingredientesMap.values()));
 
+totalCalorias = kcal;
+totalProteinas = prot;
+totalPrecio = precio;
 
-    });
 
     const detalles = document.createElement('p');
     detalles.innerHTML = `
@@ -145,7 +154,6 @@ totalProteinas += (ingrediente.proteinas || 0) * (cantidad / 100);
     };
 
     lista.style.display = 'none';
-
     card.append(encabezado, detalles, toggleIngredientes, lista);
     contenedor.appendChild(card);
   }

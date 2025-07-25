@@ -49,10 +49,13 @@ async function cargarDespensa() {
   data.forEach(item => {
     const li = document.createElement('li');
     li.innerHTML = `
-      ${item.nombre} — ${item.cantidad} ${item.unidad}
-      <button data-id="${item.id}" class="editar-btn">✏️</button>
-      <button data-id="${item.id}" class="borrar-btn">🗑</button>
-    `;
+  <span class="despensa-item-nombre">${item.nombre} — ${item.cantidad} ${item.unidad}</span>
+  <div class="despensa-item-actions">
+    <button data-id="${item.id}" class="editar-btn">✏️</button>
+    <button data-id="${item.id}" class="borrar-btn">🗑</button>
+  </div>
+`;
+
     list.appendChild(li);
   });
 

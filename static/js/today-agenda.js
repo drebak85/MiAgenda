@@ -69,6 +69,11 @@ function rutinaTerminadaHoy(rutina) {
   return ahora > fin;
 }
 
+function formatHora(hora) {
+  if (!hora || hora === '00:00:00') return '';
+  return hora.slice(0,5); // Recorta HH:MM
+}
+
 function renderizarActividades(actividades) {
   container.innerHTML = '';
   if (actividades.length === 0) {
@@ -135,7 +140,10 @@ if (act.completado) actDiv.classList.add('actividad-completada');
 
     actDiv.innerHTML = `
   <div class="actividad-info">
-    <span class="actividad-hora">${act.start || ''}${act.end ? ` - ${act.end}` : ''}</span>
+    <span class="actividad-hora">
+  ${formatHora(act.start)}${formatHora(act.end) ? ` - ${formatHora(act.end)}` : ''}
+</span>
+
     <span class="actividad-descripcion">${act.descripcion}</span>
     <span class="actividad-tiempo">${tiempo}</span>
   </div>

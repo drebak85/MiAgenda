@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <title>Mi Despensa</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+  <!-- Cambiamos la hoja de estilos -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/despensa.css') }}">
   <script type="module" src="{{ url_for('static', filename='js/despensa.js') }}"></script>
 </head>
 <body>
   <h1>Despensa</h1>
 
- <form id="form-despensa">
-  <select id="ingrediente-select" required>
-    <option value="">Selecciona un ingrediente</option>
-  </select>
-  <input type="number" id="cantidad-ingrediente" placeholder="Cantidad" required />
-  <select id="unidad-ingrediente">
-    <option value="g">g</option>
-    <option value="ml">ml</option>
-    <option value="ud">ud</option>
-  </select>
-  <button type="submit">Añadir</button>
-</form>
-
+  <form id="form-despensa">
+    <select id="ingrediente-select" required>
+      <option value="">Selecciona un ingrediente</option>
+    </select>
+    <input type="number" id="cantidad-ingrediente" placeholder="Cantidad" required />
+    <select id="unidad-ingrediente">
+      <option value="g">g</option>
+      <option value="ml">ml</option>
+      <option value="ud">ud</option>
+    </select>
+    <button type="submit">Añadir</button>
+  </form>
 
   <hr />
 

@@ -52,6 +52,15 @@ function showMessageModal(message) {
     closeButton.addEventListener('click', closeModal);
 }
 
+function formatFecha(fechaISO) {
+  const meses = [
+    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+  ];
+  const [año, mes, dia] = fechaISO.split('-');
+  return `${parseInt(dia)} de ${meses[parseInt(mes) - 1]}`;
+}
+
 
 async function cargarCitas(showAll = false) {
     console.log(`[cargarCitas] Llamada a cargarCitas con showAll: ${showAll}`);
@@ -139,35 +148,38 @@ function renderCitas(showAll) {
         }
 
         citaDiv.innerHTML = `
-            <div class="cita-info">
-                <i class="estado-icono"></i><span class="cita-descripcion">${cita.description}</span>
-                <span class="cita-fecha-hora">${cita.date} ${cita.start_time || ''} - ${cita.end_time || ''}</span>
-                <span class="cita-tiempo-restante">${tiempoRestante}</span>
-                <div class="cita-requisitos">
-    ${(cita.requirements || []).map((req, reqIndex) => `
-        <label class="requisito-checkbox">
-            <input type="checkbox"
-                   data-id="${cita.id}"
-                   data-index="${reqIndex}"
-                   ${req.checked ? 'checked' : ''} />
-            <span>${req.text}</span>
-        </label>
-    `).join('')}
-</div>
-
-            </div>
-            <div class="cita-actions">
-                <button class="btn-action btn-complete ${cita.completed ? 'completed' : ''}" data-id="${cita.id}" data-completed="${cita.completed}">
-                    <i class="fas fa-check"></i>
-                </button>
-                <button class="btn-action btn-edit" data-id="${cita.id}">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-action btn-delete" data-id="${cita.id}">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
+    <div class="cita-main-content">
+        <i class="estado-icono"></i>
+        <span class="cita-descripcion">${cita.description}</span>
+        <span class="cita-hora">${cita.start_time || ''}${cita.end_time ? ' - ' + cita.end_time : ''}</span>
+        <span class="cita-tiempo-restante">${tiempoRestante}</span>
+        <div class="cita-requisitos">
+            ${(cita.requirements || []).map((req, reqIndex) => `
+                <label class="requisito-checkbox">
+                    <input type="checkbox"
+                           data-id="${cita.id}"
+                           data-index="${reqIndex}"
+                           ${req.checked ? 'checked' : ''} />
+                    <span>${req.text}</span>
+                </label>
+            `).join('')}
+        </div>
+    </div>
+    <div class="cita-aside-content">
+        <div class="cita-fecha">${formatFecha(cita.date)}</div>
+        <div class="cita-actions">
+            <button class="btn-action btn-complete ${cita.completed ? 'completed' : ''}" data-id="${cita.id}" data-completed="${cita.completed}">
+                <i class="fas fa-check"></i>
+            </button>
+            <button class="btn-action btn-edit" data-id="${cita.id}">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-action btn-delete" data-id="${cita.id}">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+`;
         container.appendChild(citaDiv);
         citasMostradas++;
     }

@@ -28,15 +28,16 @@ body {
 }
 
 /* ================== 🧾 SECCIONES ================== */
-section.main-section {
+  section.main-section {
+    width: 100% - 5px); /* deja 10px de margen a cada lado */
+    max-width: 480px;
+    margin: 10px auto; /* separación vertical entre módulos */
+    padding: 20px;
     background-color: #1E1E1E;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
-    margin-bottom: 20px;
-    padding: 20px;
-    width: 100%;
-    max-width: 480px;
-}
+    box-sizing: border-box;
+  }
 
 h2 {
     color: #FFFFFF;
@@ -48,16 +49,8 @@ h2 {
 }
 
 /* ================== 📅 CITA ITEM ================== */
-.cita-item {
-    background-color: #1E1E1E;
-    border-left: 4px solid #00BFFF;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+
+
 
 .cita-descripcion {
     font-weight: bold;
@@ -69,12 +62,7 @@ h2 {
     font-size: 0.95em;
     font-weight: bold;
 }
-.cita-info {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
+
 
 .cita-item.completed-cita-item {
     background-color: #2C3E3E;
@@ -85,26 +73,8 @@ h2 {
    se gestiona dinámicamente desde upcoming-appointments.js */
 
 /* ================== 🟢 BOTONES ACCIONES (EN FILA) ================== */
-.cita-actions {
-    display: flex;
-    gap: 10px;
-    margin-left: 10px;
-    flex-shrink: 0;
-}
 
-.btn-action {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    font-size: 0.9em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    color: white;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
+
 
 .btn-action.btn-complete { background-color: #00D27F; }
 .btn-action.btn-edit { background-color: #FFD93D; color: black; }
@@ -366,21 +336,41 @@ form select {
 
 
 /* Grupo de checkboxes para días de rutina */
-.dias-semana {
+.dias-semana-wrapper {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-.dias-semana label {
-  background-color: #e0f2ff;
-  padding: 0.4rem 0.8rem;
-  border-radius: 1rem;
-  font-weight: 500;
+.dias-fila {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.dias-fila label {
+  background-color: #cceaff;
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-weight: bold;
+  text-align: center;
+  color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 40px;
   cursor: pointer;
 }
+
+
+
+
+
+
+
+
 
 
 /* Estilo de la lista de requisitos */
@@ -521,9 +511,22 @@ form select {
 }
 
 /* Asegura que los botones del formulario estén siempre en la parte inferior del contenido de la sección */
-#form-nueva-actividad .form-buttons {
-    margin-top: 20px; /* Añade espacio encima de los botones de acción */
+#form-nueva-actividad {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px 0;
 }
+
+/* Estilo adicional para días */
+
+
+/* Opcional: resaltar los seleccionados */
+.dias-semana input[type="checkbox"]:checked + span {
+  font-weight: bold;
+  color: #007acc;
+}
+
 
 .btn-ver-mas {
   margin-top: 10px;
@@ -607,13 +610,15 @@ textarea {
 .form-grid-3cols {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 @media (max-width: 700px) {
   .form-grid-3cols {
-    grid-template-columns: 1fr;
-  }
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
 }
 
 .checkbox-group {
@@ -929,3 +934,98 @@ textarea {
 .form-botones button#cancelarEdicion {
   background: #e74c3c;
 }
+
+/* === ESTILOS DE CITAS === */
+/* === ESTILOS DE CITAS === */
+.cita-item {
+  background-color: #1E1E1E;
+  border-left: 4px solid #00BFFF; /* Mantiene el borde izquierdo para indicar estado/tipo */
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: flex; /* Habilita Flexbox para los elementos hijos directos */
+  justify-content: space-between; /* Empuja el contenido principal a la izquierda y el lateral a la derecha */
+  align-items: flex-start; /* Alinea los elementos al inicio de la cruz del eje (arriba) */
+  gap: 15px; /* Espacio entre el contenido principal y el lateral */
+}
+
+/* Bloque principal: info de la cita (descripción, horas, tiempo restante, requisitos) */
+.cita-main-content {
+  display: flex;
+  flex-direction: column; /* Apila los elementos internos verticalmente */
+  gap: 4px; /* Espacio entre los elementos de información */
+  flex-grow: 1; /* Permite que este contenedor ocupe el espacio disponible */
+}
+
+/* Bloque lateral: fecha y botones de acción */
+.cita-aside-content {
+  display: flex;
+  flex-direction: column; /* Apila la fecha y los botones verticalmente */
+  align-items: flex-end; /* Alinea la fecha y los botones a la derecha dentro de este contenedor */
+  gap: 8px; /* Espacio entre la fecha y los botones */
+  flex-shrink: 0; /* Evita que este contenedor se encoja */
+}
+
+/* Estilos de la fecha dentro del bloque lateral */
+.cita-aside-content .cita-fecha {
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #ccc;
+  white-space: nowrap; /* Previene saltos de línea en la fecha */
+}
+
+/* Estilos para el contenedor de los botones de acción */
+.cita-aside-content .cita-actions {
+  display: flex;
+  flex-wrap: wrap; /* ¡Clave! Permite que los elementos se envuelvan a la siguiente línea */
+  gap: 8px; /* Espacio entre los botones */
+  justify-content: flex-end; /* Alinea los botones a la derecha dentro de su contenedor */
+  max-width: 90px; /* Ajusta este valor según el tamaño deseado para 2 botones por fila */
+                    /* (Ej: 2 botones de 40px + 8px de gap = 88px. Redondeado a 90px para holgura) */
+}
+
+/* Estilos de los botones de acción individuales */
+.btn-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle; /* Asegura alineación vertical del icono */
+  width: 40px; /* Ancho fijo para cada botón */
+  height: 40px; /* Altura fija para cada botón */
+  border: none;
+  border-radius: 50%; /* Opcional: si quieres botones circulares */
+  cursor: pointer;
+  background-color: #333; /* Color de fondo por defecto */
+  color: #fff; /* Color del icono por defecto */
+  font-size: 1.2em; /* Tamaño del icono */
+  transition: background-color 0.2s ease;
+  flex-shrink: 0; /* Evita que los botones se encojan en pantallas pequeñas */
+}
+
+/* Colores específicos para cada tipo de botón */
+.btn-action.btn-complete { background-color: #28a745; } /* Verde */
+.btn-action.btn-complete.completed { background-color: #1a7a32; } /* Verde más oscuro cuando completado */
+.btn-action.btn-edit { background-color: #007bff; } /* Azul */
+.btn-action.btn-delete { background-color: #dc3545; } /* Rojo */
+
+.btn-action:hover {
+  filter: brightness(1.2); /* Efecto de brillo al pasar el ratón */
+}
+
+/* Otros estilos de texto dentro de la cita, si no los tienes ya */
+.cita-descripcion {
+    font-weight: bold;
+    font-size: 1em;
+    color: #00BFFF;
+}
+.cita-tiempo-restante {
+    color: #00FFD0;
+    font-size: 0.95em;
+    font-weight: bold;
+}
+.cita-hora {
+  font-weight: bold;
+  color: #f1f1f1;
+}
+
+/* Puedes mantener los estilos existentes para .estado-icono, .cita-requisitos, etc. */

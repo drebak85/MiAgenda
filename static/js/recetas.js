@@ -1,4 +1,6 @@
 import { supabase } from './supabaseClient.js';
+import { calcularTotalesReceta } from '../utils/calculos_ingredientes.js';
+
 
 function showMessageModal(mensaje) {
     const modal = document.getElementById('message-modal');
@@ -6,7 +8,9 @@ function showMessageModal(mensaje) {
     const btnOk = document.getElementById('modal-ok-button');
     const btnClose = document.querySelector('.close-button');
     if (!modal || !texto || !btnOk || !btnClose) {
-        alert(mensaje);
+        // Fallback to alert if modal elements are not found
+        // In a real application, you'd want a more robust fallback or ensure modal exists
+        alert(mensaje); 
         return;
     }
     texto.textContent = mensaje;
@@ -28,9 +32,10 @@ export async function cargarIngredientesParaReceta() {
 
     select.innerHTML = '<option value="">Selecciona un ingrediente</option>';
 
+    // CAMBIO AQUÍ: Usar 'ingredientes_base' para consistencia con menu.js
     const { data, error } = await supabase
-        .from('ingredientes')
-        .select('id, description, unidad, calorias, proteinas, precio');
+        .from('ingredientes_base') // Cambiado de 'ingredientes' a 'ingredientes_base'
+        .select('id, description, unidad, calorias, proteinas, precio, cantidad'); // Asegúrate de seleccionar 'cantidad' también
 
     if (error) {
         showMessageModal('Error al cargar ingredientes: ' + error.message);
@@ -46,6 +51,7 @@ export async function cargarIngredientesParaReceta() {
         option.dataset.calorias = ingrediente.calorias || 0;
         option.dataset.proteinas = ingrediente.proteinas || 0;
         option.dataset.precio = ingrediente.precio || 0;
+        option.dataset.cantidadBase = ingrediente.cantidad || 0; // Añadir cantidad base al dataset
         select.appendChild(option);
     });
 }
@@ -71,29 +77,25 @@ function renderizarIngredientesReceta() {
 }
 
 function actualizarTotales() {
-    let totalCalorias = 0;
-    let totalProteinas = 0;
-    let totalPrecio = 0;
+  const baseIngredientes = ingredientesRecetaSeleccionados.map(ing => ({
+    id: ing.id,
+    description: ing.nombre,
+    unidad: ing.unidad,
+    calorias: ing.calorias,
+    proteinas: ing.proteinas,
+    precio: ing.precio,
+    cantidad: ing.cantidadBase || 100 // base de comparación
+  }));
 
-    ingredientesRecetaSeleccionados.forEach(ing => {
-        // Factor para nutrientes (asumiendo valores por 100 g/ml)
-        const factorNutrientes = ing.cantidad / 100;
-        totalCalorias += ing.calorias * factorNutrientes;
-        totalProteinas += ing.proteinas * factorNutrientes;
-        // Factor para precio proporcional al paquete completo (ej: 1000 g)
-        let factorPrecio;
-        if (ing.unidad.toLowerCase().includes('g') || ing.unidad.toLowerCase().includes('ml')) {
-            factorPrecio = ing.cantidad / 1000;
-        } else {
-            factorPrecio = ing.cantidad;
-        }
-        totalPrecio += ing.precio * factorPrecio;
-    });
+  const { totalPrecio, totalCalorias, totalProteinas } =
+    calcularTotalesReceta(ingredientesRecetaSeleccionados, baseIngredientes);
 
-    document.getElementById('total-calorias').textContent = totalCalorias.toFixed(2);
-    document.getElementById('total-proteinas').textContent = totalProteinas.toFixed(2);
-    document.getElementById('total-precio').textContent = totalPrecio.toFixed(2);
+  document.getElementById('total-calorias').textContent = totalCalorias.toFixed(2);
+  document.getElementById('total-proteinas').textContent = totalProteinas.toFixed(2);
+  document.getElementById('total-precio').textContent = totalPrecio.toFixed(2);
 }
+
+
 
 
 export async function guardarReceta() {
@@ -110,18 +112,22 @@ export async function guardarReceta() {
         return;
     }
 
+    // Convertimos el array de ingredientes a JSON (esto es para la columna 'ingredientes' en la tabla 'recetas')
+    const ingredientesJSON = JSON.stringify(ingredientesRecetaSeleccionados);
+
     try {
         const { data: receta, error: recetaError } = await supabase
             .from('recetas')
-            .insert([{ nombre, instrucciones }])
+            .insert([{ nombre, instrucciones, ingredientes: ingredientesJSON }]) // Guardar el JSON
             .select()
             .single();
 
         if (recetaError) throw recetaError;
 
+        // Formatear los ingredientes para la tabla 'ingredientes_receta'
         const ingredientesFormateados = ingredientesRecetaSeleccionados.map(ing => ({
             receta_id: receta.id,
-            ingrediente_id: ing.id,
+            ingrediente_id: ing.id, // Asegúrate de que este ID sea el de ingredientes_base
             cantidad: ing.cantidad,
             unidad: ing.unidad
         }));
@@ -133,6 +139,13 @@ export async function guardarReceta() {
         if (ingredientesError) throw ingredientesError;
 
         showMessageModal('Receta guardada correctamente.');
+        // Opcional: limpiar el formulario después de guardar
+        document.getElementById('nueva-actividad-descripcion').value = '';
+        document.getElementById('receta-instrucciones').value = '';
+        ingredientesRecetaSeleccionados = [];
+        renderizarIngredientesReceta();
+        actualizarTotales();
+
     } catch (err) {
         console.error('Error al guardar la receta:', err);
         showMessageModal('Error al guardar la receta.');
@@ -148,6 +161,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnAdd) {
         btnAdd.addEventListener('click', () => {
             const option = select.options[select.selectedIndex];
+            // Verificar si se ha seleccionado una opción válida
+            if (!option || !option.value) {
+                showMessageModal('Selecciona un ingrediente válido.');
+                return;
+            }
+
             const ingredienteId = option.value;
             const ingredienteNombre = option.dataset.nombre;
             const unidad = option.dataset.unidad;
@@ -155,9 +174,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const calorias = parseFloat(option.dataset.calorias) || 0;
             const proteinas = parseFloat(option.dataset.proteinas) || 0;
             const precio = parseFloat(option.dataset.precio) || 0;
+            const cantidadBase = parseFloat(option.dataset.cantidadBase) || 0; // Obtener la cantidad base
 
-            if (!ingredienteId || isNaN(cantidad)) {
-                showMessageModal('Selecciona un ingrediente válido y cantidad.');
+            if (isNaN(cantidad) || cantidad <= 0) {
+                showMessageModal('Introduce una cantidad válida y mayor que cero.');
                 return;
             }
 
@@ -168,7 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 unidad,
                 calorias,
                 proteinas,
-                precio
+                precio,
+                cantidadBase // Guardar la cantidad base para el cálculo posterior
             });
 
             renderizarIngredientesReceta();
@@ -183,5 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnGuardar.addEventListener('click', guardarReceta);
     }
 
+    // Exportar la función para que sea accesible globalmente si es necesario
     window.cargarIngredientesParaReceta = cargarIngredientesParaReceta;
+
+    // Cargar ingredientes al cargar la página
+    cargarIngredientesParaReceta();
 });
