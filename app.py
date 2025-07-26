@@ -32,6 +32,11 @@ def serve_citas():
 def lista_compra():
     return render_template("lista_compra.html")
 
+@app.route("/alimentacion")
+def alimentacion():
+    return render_template('alimentacion.html', cargar_add_activity=False)
+
+
 
 
 @app.route('/menu')
