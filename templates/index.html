@@ -433,15 +433,16 @@
 </div>
 </div>
 <!-- Scripts JS -->
-<script src="/static/js/supabaseClient.js" type="module"></script> <!-- Asegúrate de que este script existe y es correcto -->
-<script src="/static/js/main.js" type="module"></script>
-<script src="/static/js/upcoming-appointments.js" type="module"></script>
+<script src="{{ url_for('static', filename='js/supabaseClient.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/upcoming-appointments.js') }}" type="module"></script>
 {% if cargar_add_activity %}
-  <script src="/static/js/add-activity.js" type="module"></script>
+  <script src="{{ url_for('static', filename='js/add-activity.js') }}" type="module"></script>
 {% endif %}
 
-<script src="/static/js/today-agenda.js" type="module"></script>
-<script src="/static/js/recetas.js" type="module"></script>
-<script src="/static/js/comida_dia.js" type="module"></script>
+
+<script src="{{ url_for('static', filename='js/today-agenda.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/recetas.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/comida_dia.js') }}" type="module"></script>
 </body>
 </html>

@@ -2,8 +2,8 @@ services:
   - type: web
     name: mi-agenda
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: ""
     startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.4  # Asegúrate que tiene los 3 números
+        value: 3.11.6
