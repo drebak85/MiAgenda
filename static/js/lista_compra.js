@@ -62,8 +62,9 @@ form.addEventListener('submit', async (e) => {
 
 async function cargarLista() {
   const { data: lista } = await supabase
-    .from('lista_compra')
-    .select('id, nombre, completado')
+  .from('lista_compra')
+  .select('id, nombre, completado, cantidad, unidad')
+
     .order('created_at', { ascending: true });
 
   if (!lista || lista.length === 0) {
@@ -285,22 +286,49 @@ document.getElementById('agregar-completados-despensa').addEventListener('click'
     .eq('completado', true);
 
   for (const item of completados) {
-    const { data: existente } = await supabase
-      .from('despensa')
-      .select('id')
-      .eq('nombre', item.nombre)
+    // Obtener cantidad y unidad reales del ingrediente
+    const { data: datosIngrediente } = await supabase
+      .from('ingredientes')
+      .select('cantidad, unidad')
+      .eq('description', item.nombre)
       .maybeSingle();
 
-    if (!existente) {
-      await supabase.from('despensa').insert([{ nombre: item.nombre }]);
+    const cantidadComprada = datosIngrediente?.cantidad ?? 1;
+    const unidadComprada = datosIngrediente?.unidad ?? 'unidad';
+
+    // Buscar si ya existe en la despensa con misma unidad
+    const { data: existente } = await supabase
+      .from('despensa')
+      .select('id, cantidad')
+      .eq('nombre', item.nombre)
+      .eq('unidad', unidadComprada)
+      .maybeSingle();
+
+    if (existente) {
+      // Ya existe → actualiza sumando
+      const nuevaCantidad = parseFloat(existente.cantidad) + parseFloat(cantidadComprada);
+
+      await supabase
+        .from('despensa')
+        .update({ cantidad: nuevaCantidad })
+        .eq('id', existente.id);
+    } else {
+      // No existe → inserta
+      await supabase.from('despensa').insert([{
+        nombre: item.nombre,
+        cantidad: cantidadComprada,
+        unidad: unidadComprada
+      }]);
     }
 
+    // Borra de la lista de compra
     await supabase.from('lista_compra').delete().eq('id', item.id);
   }
 
   cargarLista();
   cargarPendientes();
 });
+
 
 // --- NUEVA FUNCIÓN PARA PENDIENTES ---
 async function cargarPendientes() {

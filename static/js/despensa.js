@@ -28,7 +28,7 @@ async function cargarListaIngredientes() {
 
 // Mostrar lo que hay en la despensa
 async function cargarDespensa() {
-  const { data, error } = await supabase
+  const { data: despensa, error } = await supabase
     .from('despensa')
     .select('id, nombre, cantidad, unidad')
     .order('nombre', { ascending: true });
@@ -39,30 +39,48 @@ async function cargarDespensa() {
     return;
   }
 
-  if (!data || data.length === 0) {
+  if (!despensa || despensa.length === 0) {
     container.innerHTML = `<p>No tienes ingredientes guardados.</p>`;
     return;
   }
 
+  // Cargar cantidades de compra estándar
+  const { data: ingredientesBase, error: errorBase } = await supabase
+    .from('ingredientes')
+    .select('description, cantidad, unidad');
+
+  const { data: listaCompra } = await supabase
+    .from('lista_compra')
+    .select('nombre');
+
+  const nombresEnLista = listaCompra?.map(i => i.nombre.toLowerCase()) ?? [];
+
   const list = document.createElement('ul');
 
-  data.forEach(item => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-  <span class="despensa-item-nombre">${item.nombre} — ${item.cantidad} ${item.unidad}</span>
-  <div class="despensa-item-actions">
-    <button data-id="${item.id}" class="editar-btn">✏️</button>
-    <button data-id="${item.id}" class="borrar-btn">🗑</button>
-  </div>
-`;
+  for (const item of despensa) {
+    const base = ingredientesBase.find(i => i.description === item.nombre && i.unidad === item.unidad);
+    const cantidadReferencia = base?.cantidad ?? 100;
+    const umbral = cantidadReferencia * 0.15;
 
+  
+
+    const li = document.createElement('li');
+    const clase = item.cantidad <= umbral ? 'bajo-stock' : '';
+    li.innerHTML = `
+      <span class="despensa-item-nombre ${clase}">
+        ${item.nombre} — ${item.cantidad} ${item.unidad}
+      </span>
+      <div class="despensa-item-actions">
+        <button data-id="${item.id}" class="editar-btn">✏️</button>
+        <button data-id="${item.id}" class="borrar-btn">🗑</button>
+      </div>
+    `;
     list.appendChild(li);
-  });
+  }
 
   container.innerHTML = '';
   container.appendChild(list);
 
-  // Eventos de editar y borrar
   document.querySelectorAll('.borrar-btn').forEach(btn => {
     btn.addEventListener('click', borrarIngrediente);
   });
@@ -71,6 +89,7 @@ async function cargarDespensa() {
     btn.addEventListener('click', editarIngrediente);
   });
 }
+
 async function borrarIngrediente(e) {
   const id = e.target.dataset.id;
   if (!confirm('¿Eliminar este ingrediente de la despensa?')) return;

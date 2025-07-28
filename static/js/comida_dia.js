@@ -2,13 +2,19 @@ import { supabase } from './supabaseClient.js';
 import { calcularTotalesReceta } from '../utils/calculos_ingredientes.js';
 
 
+
+
+// Escucha el evento DOMContentLoaded para garantizar que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
+
+
   const contenedor = document.getElementById('comida-container');
   if (!contenedor) return;
 
   const tipos = ['Desayuno', 'Comida', 'Cena'];
   let tipoActual = calcularTipoComida();
 
+  // Función para calcular el tipo de comida de acuerdo con la hora actual
   function calcularTipoComida() {
     const hora = new Date().getHours();
     if (hora < 12) return 'Desayuno';
@@ -16,17 +22,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return 'Cena';
   }
 
+  // Función para cambiar el tipo de comida (anterior/próximo)
   function cambiarTipo(direccion) {
     let idx = tipos.indexOf(tipoActual);
-    idx = (idx + direccion + tipos.length) % tipos.length;
+    idx = (idx + direccion + tipos.length) % tipos.length; // Garantiza que el índice esté dentro del intervalo
     tipoActual = tipos[idx];
-    cargarComidaDelDia();
+    cargarComidaDelDia(); // Recarga la comida con el nuevo tipo
   }
 
+  // Función asíncrona para cargar la comida del día
   async function cargarComidaDelDia() {
     const hoy = new Date().toISOString().split('T')[0];
 
-    // Consulta solo recetas + ingredientes_receta (sin intentar join a ingredientes_base)
+    // Consulta las recetas y sus ingredientes para el día y tipo actual
     const { data, error } = await supabase
       .from('comidas_dia')
       .select(`
@@ -41,9 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .eq('fecha', hoy)
       .eq('tipo', tipoActual);
 
-    contenedor.innerHTML = '';
+    contenedor.innerHTML = ''; // Limpia el contenedor antes de añadir nuevos elementos
 
-    // Slider de navegación
+    // Crea el slider de navegación para los tipos de comida
     const slider = document.createElement('div');
     slider.classList.add('comida-tipo-header');
     slider.innerHTML = `
@@ -53,39 +61,41 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     contenedor.appendChild(slider);
 
+    // Asigna eventos a los botones del slider
     document.getElementById('comida-prev').onclick = () => cambiarTipo(-1);
     document.getElementById('comida-next').onclick = () => cambiarTipo(1);
 
     if (error) {
-      console.error('Error cargando comida:', error.message);
-      contenedor.innerHTML += `<p>Error cargando datos de Supabase</p>`;
+      console.error('Error al cargar comida:', error.message);
+      contenedor.innerHTML += `<p>Error al cargar datos de Supabase</p>`;
       return;
     }
 
     if (!data || data.length === 0) {
-      contenedor.innerHTML += `<p>No hay ${tipoActual.toLowerCase()} planificado para hoy.</p>`;
+      contenedor.innerHTML += `<p>No hay ${tipoActual.toLowerCase()} planeado para hoy.</p>`;
       return;
     }
 
-    const comida = data[0];
+    const comida = data[0]; // Tomamos la primera comida encontrada para el tipo actual
     const receta = comida.recetas;
 
-    // Obtener los IDs de ingredientes
+    // Obtener los IDs de ingredientes de la receta
     const idsIngredientes = receta.ingredientes_receta.map(ing => ing.ingrediente_id);
     let ingredientesMap = new Map();
     if (idsIngredientes.length > 0) {
+      // Carga los datos base de los ingredientes
       const { data: ingData, error: ingError } = await supabase
         .from('ingredientes_base')
         .select('id, description, precio, cantidad, calorias, proteinas, unidad')
         .in('id', idsIngredientes);
       if (ingError) {
-        console.error('Error cargando ingredientes_base:', ingError);
+        console.error('Error al cargar ingredientes_base:', ingError);
       } else {
         ingData.forEach(ing => ingredientesMap.set(ing.id, ing));
       }
     }
 
-    // Crear tarjeta
+    // Crear la tarjeta de la comida
     const card = document.createElement('div');
     card.classList.add('comida-card');
 
@@ -94,55 +104,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const nombre = document.createElement('h4');
     nombre.textContent = receta.nombre;
+    
 
+
+    // Botón para marcar como completado
     const toggle = document.createElement('button');
     toggle.classList.add('check-small');
     toggle.innerHTML = comida.is_completed ? '✅' : '⭕';
     toggle.onclick = async () => {
-      await supabase
-        .from('comidas_dia')
-        .update({ is_completed: !comida.is_completed })
-        .eq('id', comida.id);
-      cargarComidaDelDia();
-    };
+  const nuevoEstado = !comida.is_completed;
 
-    encabezado.append(nombre, toggle);
+  if (nuevoEstado) {
+    // Solo restar si estamos marcando como completado
+    for (const ing of receta.ingredientes_receta) {
+      const ingBase = ingredientesMap.get(ing.ingrediente_id);
+      if (!ingBase) continue;
 
-    let totalCalorias = 0, totalPrecio = 0, totalProteinas = 0;
-const lista = document.createElement('ul');
-lista.classList.add('lista-ingredientes');
+      const nombre = ingBase.description;
+      const cantidadUsada = parseFloat(ing.cantidad);
 
-receta.ingredientes_receta.forEach(ing => {
-  const ingBase = ingredientesMap.get(ing.ingrediente_id);
-  const cantidad = parseFloat(ing.cantidad);
-  const unidad = ing.unidad;
-  const li = document.createElement('li');
+      const { data: despensaItem, error } = await supabase
+        .from('despensa')
+        .select('id, cantidad')
+        .eq('nombre', nombre)
+        .maybeSingle();
 
-  if (ingBase) {
-    li.textContent = `${cantidad} ${unidad} de ${ingBase.description}`;
-  } else {
-    li.textContent = `${cantidad} ${unidad} (ingrediente #${ing.ingrediente_id} no encontrado)`;
+      if (despensaItem) {
+        const cantidadActual = parseFloat(despensaItem.cantidad) || 0;
+        const nuevaCantidad = Math.max(cantidadActual - cantidadUsada, 0);
+
+        await supabase
+          .from('despensa')
+          .update({ cantidad: nuevaCantidad })
+          .eq('id', despensaItem.id);
+      }
+    }
   }
 
-  lista.appendChild(li);
-});
+  // Actualizar el estado completado en comidas_dia
+  await supabase
+    .from('comidas_dia')
+    .update({ is_completed: nuevoEstado })
+    .eq('id', comida.id);
 
-// Usamos la función centralizada
-const { totalCalorias: kcal, totalProteinas: prot, totalPrecio: precio } =
-  calcularTotalesReceta(receta.ingredientes_receta, Array.from(ingredientesMap.values()));
+  cargarComidaDelDia(); // Refresca la vista
+};
 
-totalCalorias = kcal;
-totalProteinas = prot;
-totalPrecio = precio;
+encabezado.appendChild(nombre);
+encabezado.appendChild(toggle);  // <---- AQUÍ LO AÑADIMOS
 
+    // Calcula y muestra los totales nutricionales y de precio
+    const { totalCalorias: kcal, totalProteinas: prot, totalPrecio: precio } =
+      calcularTotalesReceta(receta.ingredientes_receta, Array.from(ingredientesMap.values()));
 
     const detalles = document.createElement('p');
     detalles.innerHTML = `
-      <strong>Precio:</strong> ${totalPrecio.toFixed(2)} € |
-      <strong>Calorías:</strong> ${Math.round(totalCalorias)} kcal |
-      <strong>Proteínas:</strong> ${Math.round(totalProteinas)} g
+      <strong>Precio:</strong> ${precio.toFixed(2)} € |
+      <strong>Calorías:</strong> ${Math.round(kcal)} kcal |
+      <strong>Proteínas:</strong> ${Math.round(prot)} g
     `;
 
+    // Botón para mostrar/ocultar ingredientes
     const toggleIngredientes = document.createElement('button');
     toggleIngredientes.textContent = '🧾 Ver ingredientes';
     toggleIngredientes.classList.add('toggle-ingredientes');
@@ -153,10 +175,25 @@ totalPrecio = precio;
       toggleIngredientes.textContent = visible ? '🔽 Ocultar ingredientes' : '🧾 Ver ingredientes';
     };
 
-    lista.style.display = 'none';
+    // Crear lista de ingredientes
+const lista = document.createElement('ul');
+lista.classList.add('ingredientes-lista');
+
+receta.ingredientes_receta.forEach(ing => {
+  const ingBase = ingredientesMap.get(ing.ingrediente_id);
+  if (!ingBase) return;
+
+  const li = document.createElement('li');
+  li.textContent = `${ingBase.description}: ${ing.cantidad} ${ing.unidad}`;
+  lista.appendChild(li);
+});
+
+lista.style.display = 'none'; // Oculta la lista de ingredientes por defecto
+
     card.append(encabezado, detalles, toggleIngredientes, lista);
     contenedor.appendChild(card);
   }
 
-  cargarComidaDelDia();
+  cargarComidaDelDia(); // Carga la comida inicial al cargar la página
 });
+
