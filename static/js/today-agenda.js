@@ -6,8 +6,22 @@ async function cargarAgendaHoy() {
   const hoy = new Date();
   const diaSemanaEsp = hoy.toLocaleDateString('es-ES', { weekday: 'long' });
   const hoyStr = hoy.toISOString().split('T')[0];
-
   let actividades = [];
+
+  // BORRAR tareas completadas de días anteriores
+  await supabase
+    .from('tasks')
+    .delete()
+    .lt('due_date', hoyStr)
+    .eq('is_completed', true);
+
+  // MOVER tareas no completadas de días anteriores al día actual
+  await supabase
+    .from('tasks')
+    .update({ due_date: hoyStr })
+    .lt('due_date', hoyStr)
+    .eq('is_completed', false);
+
 
   // TAREAS
   const { data: tareas, error: errorTareas } = await supabase
@@ -28,30 +42,40 @@ async function cargarAgendaHoy() {
     actividades = actividades.concat(tareasFormateadas);
   }
 
-  // RUTINAS
-  const { data: rutinas, error: errorRutinas } = await supabase
-    .from('routines')
-    .select('*')
-    .eq('is_active', true)
-    .eq('date', hoyStr);
+// RUTINAS
+const { data: rutinas, error: errorRutinas } = await supabase
+  .from('routines')
+  .select('*')
+  .eq('is_active', true);
 
-  if (!errorRutinas && rutinas) {
-    const rutinasDelDia = rutinas.filter(r =>
-      Array.isArray(r.days_of_week) && r.days_of_week.includes(capitalize(diaSemanaEsp))
+if (!errorRutinas && rutinas) {
+  const rutinasDelDia = rutinas.filter(r => {
+    const cumpleDiaSemana =
+      Array.isArray(r.days_of_week) &&
+      r.days_of_week.includes(capitalize(diaSemanaEsp));
+
+    const fechaInicio = new Date(r.date);
+    const fechaFin = r.end_date ? new Date(r.end_date) : null;
+
+    return (
+      cumpleDiaSemana &&
+      fechaInicio <= hoy &&
+      (!fechaFin || hoy <= fechaFin)
     );
+  });
 
-    const rutinasFormateadas = rutinasDelDia.map(r => ({
-      tipo: 'Rutina',
-      id: r.id,
-      descripcion: r.description,
-      start: r.start_time || '',
-      end: r.end_time || '',
-      completado: r.is_completed
+  const rutinasFormateadas = rutinasDelDia.map(r => ({
+    tipo: 'Rutina',
+    id: r.id,
+    descripcion: r.description,
+    start: r.start_time || '',
+    end: r.end_time || '',
+    completado: r.is_completed
+  }));
 
-    }));
+  actividades = actividades.concat(rutinasFormateadas);
+}
 
-    actividades = actividades.concat(rutinasFormateadas);
-  }
 
   renderizarActividades(actividades);
 }

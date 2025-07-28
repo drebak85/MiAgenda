@@ -225,7 +225,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const dias = Array.from(document.querySelectorAll('input[name="rutina_dia_semana"]:checked')).map(el => el.value);
       dataToSave.days_of_week = dias;
       dataToSave.is_active = true;
-      dataToSave.date = document.getElementById('rutina-fecha').value;
+     dataToSave.date = document.getElementById('rutina-fecha').value;
+const endDateInput = document.getElementById('rutina-fecha-fin');
+if (endDateInput && endDateInput.value) {
+  dataToSave.end_date = endDateInput.value;
+}
+
     } else if (tipoSeleccionado === 'Cita') {
       tableName = 'appointments';
       dataToSave.date = document.getElementById('cita-fecha').value;
