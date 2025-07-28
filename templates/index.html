@@ -442,4 +442,456 @@
 <script src="{{ url_for('static', filename='js/recetas.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/comida_dia.js') }}" type="module"></script>
 </body>
+=======
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Mi Agenda</title>
+<!-- Font Awesome para los iconos -->
+<link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer" rel="stylesheet"/>
+<!-- Enlace a tu hoja de estilos principal -->
+<link href="/static/css/style.css" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+</head>
+<body>
+<header style="display: flex; align-items: center; gap: 12px; padding: 10px;">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+<div class="header-date" id="fechaHora"></div>
+<div id="botonCalendario">
+<a href="{{ url_for('calendario') }}" style="display: inline-block; padding: 10px; border-radius: 10px; background-color: #f0f0f0; border: 1px solid #ccc; text-decoration: none;">
+<i class="fas fa-calendar-alt" style="font-size: 20px; color: #333;"></i>
+</a>
+</div>
+</header>
+<main>
+<!-- Sección de Próximas Citas -->
+<section class="main-section" id="proximas-citas">
+
+<div class="section-content" id="citas-container">
+<!-- Las citas se cargarán aquí dinámicamente -->
+</div>
+<!-- Nuevo botón "Ver 5 citas más" -->
+<div class="ver-mas-container">
+  <button class="btn-ver-mas" id="ver-mas-citas">
+    <i class="fas fa-chevron-down"></i> Ver más
+  </button>
+</div>
+
+<!-- Formulario de edición de cita (oculto por defecto) -->
+<div class="oculto form-modal" id="form-editar-cita">
+  
+  <form id="editar-formulario" class="form-editar-cita">
+    <input id="editar-id" type="hidden" />
+
+    <div class="form-group" id="description-group">
+      <label for="editar-descripcion">Descripción:</label>
+      <input id="editar-descripcion" type="text" placeholder="Descripción" />
+    </div>
+
+    <div class="form-group" id="date-group">
+      <label for="editar-fecha">Fecha:</label>
+      <input id="editar-fecha" type="date" />
+    </div>
+
+    <div class="form-row" id="time-row">
+      <div class="form-group flex-item">
+        <label for="editar-hora-inicio">Hora de Inicio:</label>
+        <input id="editar-hora-inicio" type="time" />
+      </div>
+      <div class="form-group flex-item">
+        <label for="editar-hora-fin">Hora de Fin:</label>
+        <input id="editar-hora-fin" type="time" />
+      </div>
+    </div>
+
+    <div class="form-group" id="requirements-label-input-group">
+      <label for="nuevo-requisito">Añadir Requisito:</label>
+      <input id="nuevo-requisito" type="text" placeholder="Ej: DNI, Informe médico" />
+    </div>
+
+    <div id="requirements-list-and-button-area">
+      <div class="requirements-list" id="requisitos-container"></div>
+      <button type="button" id="añadir-requisito" class="btn-secondary">Añadir requisito</button>
+    </div>
+
+    <div class="form-buttons">
+      <button type="submit" class="btn-success">Guardar Cambios</button>
+      <button type="button" id="recoger-edicion" class="btn-cancel">Recoger</button>
+    </div>
+  </form>
+</div>
+
+<!-- AHORA FUERA del formulario anterior -->
+<div class="oculto form-modal" id="form-editar-tarea">
+  <h3>Editar Tarea</h3>
+  <form id="editar-formulario-tarea" class="form-editar-cita">
+    <input id="editar-id-tarea" type="hidden" />
+
+    <div class="form-group">
+      <label for="editar-descripcion-tarea">Descripción:</label>
+      <input id="editar-descripcion-tarea" type="text" placeholder="Descripción" />
+    </div>
+
+    <div class="form-grid-2cols">
+      <div class="form-group">
+        <label for="editar-fecha-tarea">Fecha:</label>
+        <input id="editar-fecha-tarea" type="date" />
+      </div>
+      <div class="form-group">
+        <label for="editar-prioridad-tarea">Prioridad:</label>
+        <select id="editar-prioridad-tarea">
+          <option value="Baja">Baja</option>
+          <option value="Media">Media</option>
+          <option value="Alta">Alta</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-grid-2cols">
+      <div class="form-group">
+        <label for="editar-hora-inicio-tarea">Hora de Inicio:</label>
+        <input id="editar-hora-inicio-tarea" type="time" />
+      </div>
+      <div class="form-group">
+        <label for="editar-hora-fin-tarea">Hora de Fin:</label>
+        <input id="editar-hora-fin-tarea" type="time" />
+      </div>
+    </div>
+
+    <div class="form-buttons">
+      <button type="submit" class="btn-success">Guardar Cambios</button>
+      <button type="button" id="recoger-edicion-tarea" class="btn-cancel">Recoger</button>
+    </div>
+  </form>
+</div>
+
+
+
+
+ 
+</section>
+<!-- Sección de Añadir Actividad (rediseñada según la imagen) -->
+<section class="main-section" id="añadir-actividad">
+
+<div class="section-content" id="form-nueva-actividad">
+<form id="nueva-actividad-formulario">
+<!-- Contenedor para los botones de tipo de actividad con iconos -->
+<div class="activity-type-buttons">
+<!-- Botón para 'Tarea' (icono de lista/notas) -->
+<button class="icon-button" data-type="Tarea" id="btn-tarea-actividad" type="button">
+<i class="fas fa-clipboard-list"></i>
+</button>
+<!-- Botón para 'Rutina' (icono de calendario/repetición) -->
+<button class="icon-button" data-type="Rutina" id="btn-rutina-actividad" type="button">
+<i class="fas fa-redo-alt"></i>
+</button>
+<!-- Botón para 'Cita' (icono de calendario/cita) -->
+<button class="icon-button" data-type="Cita" id="btn-cita-actividad" type="button">
+<i class="fas fa-calendar-alt"></i>
+</button>
+<!-- Botón para 'Nota' (icono rojo + contador) -->
+<button class="icon-button nota-btn" id="btn-nota-actividad" type="button">
+  <i class="fas fa-sticky-note" style="color: red;"></i>
+  <span>Nota</span>
+  <span class="badge-nota" id="contador-notas">0</span>
+</button>
+
+</div>
+
+<!-- Campo de descripción principal -->
+<div class="form-group">
+<input id="nueva-actividad-descripcion" placeholder="Añadir una nueva tarea, rutina o cita..." type="text"/>
+</div>
+
+<!-- Contenedor para los formularios específicos de cada tipo de actividad -->
+<div class="oculto" id="formularios-actividad">
+<!-- Formulario para Tarea -->
+<div class="tipo-formulario oculto" id="form-tarea">
+  <div class="form-grid-2cols">
+    <div class="form-group">
+      <label for="tarea-fecha">Fecha:</label>
+      <input id="tarea-fecha" name="tarea_fecha" type="date"/>
+    </div>
+    <div class="form-group">
+      <label for="tarea-prioridad">Prioridad:</label>
+      <select id="tarea-prioridad" name="tarea_prioridad">
+        <option value="Baja">Baja</option>
+        <option value="Media" selected>Media</option>
+        <option value="Alta">Alta</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="tarea-hora-inicio">Hora de Inicio:</label>
+      <input id="tarea-hora-inicio" name="tarea_hora_inicio" type="time"/>
+    </div>
+    <div class="form-group">
+      <label for="tarea-hora-fin">Hora de Fin:</label>
+      <input id="tarea-hora-fin" name="tarea_hora_fin" type="time"/>
+    </div>
+  </div>
+</div>
+<!-- Formulario para Rutina -->
+<!-- Formulario para Rutina con fecha, 3 columnas y días con checkbox -->
+<div class="tipo-formulario oculto" id="form-rutina">
+ <div class="form-grid-3cols">
+  <div class="form-group">
+    <label for="rutina-fecha">Fecha:</label>
+    <input id="rutina-fecha" name="rutina_fecha" type="date"/>
+  </div>
+  <div class="form-group">
+    <label for="rutina-hora-inicio">Hora Inicio:</label>
+    <input id="rutina-hora-inicio" name="rutina_hora_inicio" type="time"/>
+  </div>
+  <div class="form-group">
+    <label for="rutina-hora-fin">Hora Fin:</label>
+    <input id="rutina-hora-fin" name="rutina_hora_fin" type="time"/>
+  </div>
+</div>
+
+
+ <div class="form-group dias-checkboxes">
+  <label>Días:</label>
+  <div class="dias-semana-wrapper">
+<div class="dias-semana-wrapper">
+  <div class="dias-fila">
+    <label><input type="checkbox" name="rutina_dia_semana" value="Lunes"> L</label>
+    <label><input type="checkbox" name="rutina_dia_semana" value="Martes"> M</label>
+    <label><input type="checkbox" name="rutina_dia_semana" value="Miércoles"> X</label>
+    <label><input type="checkbox" name="rutina_dia_semana" value="Jueves"> J</label>
+  </div>
+  <div class="dias-fila">
+    <label><input type="checkbox" name="rutina_dia_semana" value="Viernes"> V</label>
+    <label><input type="checkbox" name="rutina_dia_semana" value="Sábado"> S</label>
+    <label><input type="checkbox" name="rutina_dia_semana" value="Domingo"> D</label>
+  </div>
+</div>
+
+
+  </div>
+</div>
+
+</div>
+
+
+
+
+<!-- Formulario para Cita -->
+<div class="tipo-formulario oculto" id="form-cita">
+
+
+      <!-- FILA 2: Hora Inicio + Hora Fin -->
+  <div class="form-grid-2cols">
+    <div class="form-group">
+      <label for="cita-hora-inicio">Hora de Inicio:</label>
+      <input id="cita-hora-inicio" name="cita_hora_inicio" type="time" />
+    </div>
+
+    <div class="form-group">
+      <label for="cita-hora-fin">Hora de Fin:</label>
+      <input id="cita-hora-fin" name="cita_hora_fin" type="time" />
+    </div>
+  </div>
+
+
+  <!-- FILA 1: Fecha + Requisito -->
+  <div class="form-grid-2cols">
+    <div class="form-group">
+      <label for="cita-fecha">Fecha:</label>
+      <input id="cita-fecha" name="cita_fecha" type="date" />
+    </div>
+
+    <div class="form-group">
+      <label for="nuevo-requisito-cita">Añadir Requisito:</label>
+      <input type="text" id="nuevo-requisito-cita" placeholder="Ej: DNI, Informe médico" />
+    </div>
+  </div>
+
+
+  <!-- FILA 3: Botón + Lista -->
+  <div class="form-grid-2cols">
+    <div class="form-group centrado-boton">
+      <button type="button" id="btn-añadir-requisito-cita" class="btn-secondary">
+        Añadir requisito
+      </button>
+    </div>
+
+    <div class="form-group">
+      <div class="requirements-list" id="cita-requisitos-container"></div>
+    </div>
+  </div>
+
+</div>
+
+
+
+
+
+<!-- Formulario para Ingrediente -->
+<div class="tipo-formulario oculto" id="form-ingrediente">
+  <div class="form-grid-3cols">
+    <div class="form-group">
+      <label for="ingrediente-supermercado">Supermercado:</label>
+      <select id="ingrediente-supermercado">
+        <option value="Lidl">Lidl</option>
+        <option value="Mercadona">Mercadona</option>
+        <option value="Carrefour">Carrefour</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="ingrediente-precio">Precio:</label>
+      <input id="ingrediente-precio" type="number" step="0.01" />
+    </div>
+    <div class="form-group">
+      <label for="ingrediente-cantidad">Cantidad:</label>
+      <input id="ingrediente-cantidad" type="number" step="0.01" />
+    </div>
+  </div>
+
+  <div class="form-grid-3cols">
+    <div class="form-group">
+      <label for="ingrediente-unidad">Unidad:</label>
+      <select id="ingrediente-unidad">
+        <option value="g">g</option>
+        <option value="ml">ml</option>
+        <option value="unidad">unidad</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="ingrediente-calorias">Calorías:</label>
+      <input id="ingrediente-calorias" type="number" />
+    </div>
+    <div class="form-group">
+      <label for="ingrediente-proteinas">Proteínas:</label>
+      <input id="ingrediente-proteinas" type="number" step="0.1" />
+    </div>
+  </div>
+</div>
+
+<!-- Nuevo Formulario para Receta -->
+<div class="tipo-formulario oculto" id="form-receta">
+  <div class="form-group">
+    <label for="receta-instrucciones">Instrucciones:</label>
+    <textarea id="receta-instrucciones" name="receta_instrucciones" placeholder="Pasos para preparar la receta..." rows="5"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Ingredientes de la Receta:</label>
+    <div class="requirements-list" id="receta-ingredientes-container">
+      
+      <!-- Los ingredientes de la receta se añadirán aquí dinámicamente -->
+    </div>
+    <div class="add-requirement-input">
+      <select class="select-full-width" id="receta-seleccionar-ingrediente">
+        <option value="">Selecciona un ingrediente</option>
+        <!-- Opciones de ingredientes se cargarán aquí desde la DB -->
+      </select>
+      <input id="receta-cantidad-ingrediente" placeholder="Cantidad" step="0.01" type="number"/>
+      <select id="receta-unidad-ingrediente">
+        <option value="g">g</option>
+        <option value="ml">ml</option>
+        <option value="unidad">unidad</option>
+      </select>
+      <button class="btn-secondary" id="btn-añadir-ingrediente-receta" type="button">Añadir Ingrediente</button>
+    </div>
+  </div>
+  <!-- Totales Nutricionales y de Precio -->
+<div id="totales-receta" style="margin-top: 10px;">
+  <p><strong>Precio total:</strong> <span id="total-precio">0.00</span> €</p>
+  <p><strong>Calorías totales:</strong> <span id="total-calorias">0</span> kcal</p>
+  <p><strong>Proteínas totales:</strong> <span id="total-proteinas">0</span> g</p>
+</div>
+
+</div>
+
+<!-- Botón principal de Guardar/Crear Actividad -->
+<div class="form-buttons">
+<button class="btn-success btn-large" id="btn-guardar-actividad" type="submit">Guardar</button>
+<button class="btn-cancel" id="cancelar-nueva-actividad" type="button">Cancelar</button>
+</div>
+</div>
+</form>
+</div>
+</section>
+<!-- Sección de Agenda de Hoy -->
+<section class="main-section" id="agenda-de-hoy">
+
+<div class="section-content" id="agenda-container">
+<!-- Las actividades de hoy se cargarán aquí dinámicamente -->
+</div>
+</section>
+<!-- Nueva sección para "Comida de Hoy" (vacía por ahora, para estructura) -->
+<section class="main-section" id="comida-de-hoy">
+
+
+<!-- Aquí insertamos los botones -->
+<!-- Botón de Ingrediente -->
+ <div class="icon-buttons-container">
+<button class="icon-button" data-type="Ingrediente" id="btn-ingrediente-actividad" type="button">
+<i class="fas fa-carrot"></i>
+<span>Ingrediente</span>
+</button>
+<!-- Botón de Receta -->
+<button class="icon-button" data-type="Receta" id="btn-receta-actividad" type="button">
+<i class="fas fa-utensils"></i>
+<span>Receta</span>
+</button>
+<!-- Botón de despensa -->
+<button class="icon-button" onclick="window.location.href='/despensa'" type="button">
+<i class="fas fa-basket-shopping"></i>
+<span>Despensa</span>
+</button>
+<!-- Botón de lista de la compra -->
+<button class="icon-button lista-btn" onclick="window.location.href='/lista-compra'" type="button">
+  <i class="fas fa-list"></i>
+  <span>Lista</span>
+  <span class="badge-lista" id="contador-lista"></span>
+</button>
+<!-- Botón del Menú Semanal -->
+<button class="icon-button" onclick="window.location.href='/menu'" type="button">
+  <i class="fas fa-calendar-week"></i>
+  <span>Menú</span>
+</button>
+
+
+<div class="section-content" id="comida-container"></div>
+</section>
+
+
+<!-- Nueva sección para "Navegación" (vacía por ahora, para estructura) -->
+<section class="main-section" id="navegacion">
+    <h2>NAVEGACIÓN</h2>
+    <div class="section-content" id="navegacion-container">
+        <button class="icon-button" onclick="window.location.href='/alimentacion'" type="button">
+            <i class="fas fa-calendar-check"></i>
+            <span>Alimentación</span>
+        </button>
+       
+    </div>
+</section>
+</div></section></main>
+<footer>
+</footer>
+<div class="modal oculto" id="message-modal">
+<div class="modal-content">
+<span class="close-button">×</span>
+<p id="message-text"></p>
+<button class="btn-primary" id="modal-ok-button">OK</button>
+</div>
+</div>
+<script src="{{ url_for('static', filename='js/supabaseClient.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/upcoming-appointments.js') }}" type="module"></script>
+{% if cargar_add_activity %}
+  <script src="{{ url_for('static', filename='js/add-activity.js') }}" type="module"></script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/today-agenda.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/recetas.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/comida_dia.js') }}" type="module"></script>
+</body>
 </html>

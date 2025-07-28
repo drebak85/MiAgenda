@@ -53,3 +53,59 @@
  
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menú Semanal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <script type="module" src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
+</head>
+<body>
+  <h1>Menú Semanal</h1>
+
+  <div id="menu-semanal">
+    {% for item in fechas_con_dias %}
+      <section class="dia-menu" data-fecha="{{ item.fecha.strftime('%Y-%m-%d') }}">
+        <h2>{{ item.dia_nombre }}</h2>
+        {% for tipo in ['Desayuno', 'Comida', 'Cena'] %}
+          <div class="comida-dia">
+            <h3>{{ tipo }}</h3>
+            <select class="selector-receta">
+              <option value="">Selecciona una receta</option>
+            </select>
+            <button class="btn-add">Añadir</button>
+            <ul class="lista-recetas"></ul>
+            <div class="totales">
+              <p>Precio total: <span class="precio">0.00 €</span></p>
+              <p>Calorías: <span class="calorias">0</span> kcal</p>
+              <p>Proteínas: <span class="proteinas">0</span> g</p>
+            </div>
+          </div>
+        {% endfor %}
+      </section>
+    {% endfor %}
+  </div>
+
+  <!-- Navegación entre días -->
+  <div class="nav-dias">
+    <button id="prev-dia">←</button>
+    <button id="next-dia">→</button>
+  </div>
+
+  <!-- Resumen -->
+  <section id="resumen-semanal">
+    <h2>Resumen Semanal</h2>
+    <p>Coste total: <span id="coste-semanal">0.00 €</span></p>
+    <p>Calorías totales: <span id="calorias-semanales">0</span> kcal</p>
+    <p>Proteínas totales: <span id="proteinas-semanales">0</span> g</p>
+  </section>
+
+ 
+</body>
+</html>
