@@ -395,9 +395,10 @@
 <span>Despensa</span>
 </button>
 <!-- Botón de lista de la compra -->
-<button class="icon-button" onclick="window.location.href='/lista-compra'" type="button">
-<i class="fas fa-list"></i>
-<span>Lista</span>
+<button class="icon-button lista-btn" onclick="window.location.href='/lista-compra'" type="button">
+  <i class="fas fa-list"></i>
+  <span>Lista</span>
+  <span class="badge-lista" id="contador-lista"></span>
 </button>
 <!-- Botón del Menú Semanal -->
 <button class="icon-button" onclick="window.location.href='/menu'" type="button">
@@ -412,21 +413,18 @@
 
 <!-- Nueva sección para "Navegación" (vacía por ahora, para estructura) -->
 <section class="main-section" id="navegacion">
-<h2>NAVEGACIÓN</h2>
-<div class="section-content" id="navegacion-container">
-  <!-- Acceso a Agenda -->
-<button class="icon-button" onclick="window.location.href='/alimentacion'" type="button">
-  <i class="fas fa-calendar-check"></i>
-  <span>Alimentación</span>
-</button>
-</div>
-
+    <h2>NAVEGACIÓN</h2>
+    <div class="section-content" id="navegacion-container">
+        <button class="icon-button" onclick="window.location.href='/alimentacion'" type="button">
+            <i class="fas fa-calendar-check"></i>
+            <span>Alimentación</span>
+        </button>
+       
+    </div>
 </section>
 </div></section></main>
 <footer>
-<!-- Tu pie de página si lo tienes -->
 </footer>
-<!-- Modal para mensajes (Alertas personalizadas) -->
 <div class="modal oculto" id="message-modal">
 <div class="modal-content">
 <span class="close-button">×</span>
@@ -434,15 +432,12 @@
 <button class="btn-primary" id="modal-ok-button">OK</button>
 </div>
 </div>
-<!-- Scripts JS -->
 <script src="{{ url_for('static', filename='js/supabaseClient.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/upcoming-appointments.js') }}" type="module"></script>
 {% if cargar_add_activity %}
   <script src="{{ url_for('static', filename='js/add-activity.js') }}" type="module"></script>
 {% endif %}
-
-
 <script src="{{ url_for('static', filename='js/today-agenda.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/recetas.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/comida_dia.js') }}" type="module"></script>
