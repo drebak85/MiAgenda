@@ -1350,3 +1350,40 @@ textarea {
     height: 28px;
     font-size: 13px;
   }
+
+
+
+/* === CORRECCIÓN FINAL PARA AJUSTE EN MÓVIL === */
+body, html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+main, .wrapper, section.main-section {
+  max-width: 100vw;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.carousel-container,
+.icon-buttons-container,
+.activity-type-buttons {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.icon-button {
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+input, select, textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
