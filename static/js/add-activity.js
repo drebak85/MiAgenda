@@ -135,9 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Oculta todos los formularios de tipo primero
     document.querySelectorAll('.tipo-formulario').forEach(f => f.classList.add('oculto'));
     const formToShow = document.getElementById(`form-${tipo.toLowerCase()}`);
-    if (formToShow) {
-      formToShow.classList.remove('oculto'); // Muestra el formulario específico
-    }
+   if (formToShow) {
+  formToShow.classList.remove('oculto'); // Muestra el formulario específico
+  formToShow.scrollIntoView({ behavior: 'smooth', block: 'center' }); // <--- AÑADE ESTA LÍNEA
+}
+
 
     // Llama a funciones específicas si el tipo es Receta, Tarea o Rutina
     if (tipo === 'Receta' && typeof cargarIngredientesParaReceta === 'function') {
