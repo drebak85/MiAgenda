@@ -153,7 +153,7 @@
 <!-- Botón para 'Nota' (icono rojo + contador) -->
 <button class="icon-button nota-btn" id="btn-nota-actividad" type="button">
   <i class="fas fa-sticky-note" style="color: red;"></i>
-  <span>Nota</span>
+ 
   <span class="badge-nota" id="contador-notas">0</span>
 </button>
 
@@ -199,6 +199,11 @@
     <label for="rutina-fecha">Fecha:</label>
     <input id="rutina-fecha" name="rutina_fecha" type="date"/>
   </div>
+  <div class="form-group">
+  <label for="rutina-fecha-fin">Fecha Fin:</label>
+  <input id="rutina-fecha-fin" name="rutina_fecha_fin" type="date"/>
+</div>
+
   <div class="form-group">
     <label for="rutina-hora-inicio">Hora Inicio:</label>
     <input id="rutina-hora-inicio" name="rutina_hora_inicio" type="time"/>
@@ -387,31 +392,42 @@
 <!-- Aquí insertamos los botones -->
 <!-- Botón de Ingrediente -->
  <div class="icon-buttons-container">
-<button class="icon-button" data-type="Ingrediente" id="btn-ingrediente-actividad" type="button">
-<i class="fas fa-carrot"></i>
-<span>Ingrediente</span>
-</button>
-<!-- Botón de Receta -->
-<button class="icon-button" data-type="Receta" id="btn-receta-actividad" type="button">
-<i class="fas fa-utensils"></i>
-<span>Receta</span>
-</button>
-<!-- Botón de despensa -->
-<button class="icon-button" onclick="window.location.href='/despensa'" type="button">
-<i class="fas fa-basket-shopping"></i>
-<span>Despensa</span>
-</button>
-<!-- Botón de lista de la compra -->
-<button class="icon-button lista-btn" onclick="window.location.href='/lista-compra'" type="button">
-  <i class="fas fa-list"></i>
-  <span>Lista</span>
-  <span class="badge-lista" id="contador-lista"></span>
-</button>
-<!-- Botón del Menú Semanal -->
-<button class="icon-button" onclick="window.location.href='/menu'" type="button">
-  <i class="fas fa-calendar-week"></i>
-  <span>Menú</span>
-</button>
+<!-- Carrusel para botones de alimentación -->
+<div class="carousel-wrapper">
+  <button class="carousel-arrow left" id="scroll-left">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+
+  <div class="carousel-container" id="carousel">
+    <!-- Aquí van tus botones -->
+    <button class="icon-button" data-type="Ingrediente" id="btn-ingrediente-actividad">
+      <i class="fas fa-carrot"></i><span>Ingr</span>
+    </button>
+    <button class="icon-button" data-type="Receta" id="btn-receta-actividad">
+      <i class="fas fa-utensils"></i><span>Receta</span>
+    </button>
+    <button class="icon-button" onclick="window.location.href='/menu'">
+      <i class="fas fa-calendar-week"></i><span>Menú</span>
+    </button>
+    <button class="icon-button lista-btn" onclick="window.location.href='/lista-compra'">
+      <i class="fas fa-list"></i><span>Lista</span>
+      <span class="badge-lista" id="contador-lista"></span>
+    </button>
+    <button class="icon-button" onclick="window.location.href='/alimentacion'">
+      <i class="fas fa-calendar-check"></i><span>Alim</span>
+    </button>
+    
+    <button class="icon-button" onclick="window.location.href='/despensa'">
+      <i class="fas fa-basket-shopping"></i><span>Despensa</span>
+    </button>
+  </div>
+
+  <button class="carousel-arrow right" id="scroll-right">
+    <i class="fas fa-chevron-right"></i>
+  </button>
+</div>
+
+</div>
 
 
 <div class="section-content" id="comida-container"></div>
@@ -422,10 +438,7 @@
 <section class="main-section" id="navegacion">
     <h2>NAVEGACIÓN</h2>
     <div class="section-content" id="navegacion-container">
-        <button class="icon-button" onclick="window.location.href='/alimentacion'" type="button">
-            <i class="fas fa-calendar-check"></i>
-            <span>Alimentación</span>
-        </button>
+        
        
     </div>
 </section>
@@ -449,4 +462,16 @@
 <script src="{{ url_for('static', filename='js/recetas.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/comida_dia.js') }}" type="module"></script>
 </body>
+
+
+<script>
+  document.getElementById("scroll-left").addEventListener("click", function () {
+    document.getElementById("carousel").scrollBy({ left: -150, behavior: "smooth" });
+  });
+
+  document.getElementById("scroll-right").addEventListener("click", function () {
+    document.getElementById("carousel").scrollBy({ left: 150, behavior: "smooth" });
+  });
+</script>
+
 </html>
