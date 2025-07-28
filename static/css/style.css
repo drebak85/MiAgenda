@@ -29,7 +29,7 @@ body {
 
 /* ================== 🧾 SECCIONES ================== */
   section.main-section {
-    width: 100% - 5px); /* deja 10px de margen a cada lado */
+    width: calc(100% - 30px); /* deja 10px de margen a cada lado */
     max-width: 480px;
     margin: 10px auto; /* separación vertical entre módulos */
     padding: 20px;
@@ -353,9 +353,6 @@ form select {
   min-width: 40px;
   cursor: pointer;
 }
-
-
-
 
 
 
@@ -899,6 +896,8 @@ textarea {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
+  background-color: #333;
+  color: white;
 }
 
 .form-botones {
@@ -1171,6 +1170,7 @@ textarea {
     justify-content: space-between;
     gap: 4px;
     flex-wrap: nowrap;
+    font-size: 2em;
   }
 
   .activity-type-buttons .icon-button {
@@ -1180,10 +1180,128 @@ textarea {
   }
 
   .activity-type-buttons .icon-button i {
-    font-size: 16px;
+    font-size: 1.4em; /* Aumentado */
   }
 
   .activity-type-buttons .icon-button span {
     font-size: 10px;
   }
+}
+
+/* Estilo de la burbuja del contador de notas */
+.icon-button {
+  position: relative;
+}
+
+.badge-nota {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: rgb(17, 0, 110);
+  color: rgb(0, 0, 0);
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 50%;
+  line-height: 1;
+  min-width: 16px;
+  text-align: center;
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  #form-nueva-actividad {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+}
+
+
+  #form-nueva-actividad {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .activity-type-buttons {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .activity-type-buttons .icon-button {
+    flex: 1;
+    padding: 8px 4px;
+  }
+
+
+/* Carousel Wrapper: Sirve como contexto de posicionamiento para las flechas */
+.carousel-wrapper {
+  position: relative;
+  display: flex; /* Usa flex para alinear flechas y el contenedor de contenido */
+  align-items: center;
+  width: 100%;
+  /* Se elimina el padding de aquí, se manejará con los márgenes del contenedor interno */
+}
+
+/* Carousel Arrows: Posicionadas absolutamente dentro del wrapper */
+.carousel-arrow {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  padding: 10px; /* Este padding aumenta el área clicable de la flecha */
+  cursor: pointer;
+  z-index: 2; /* Asegura que las flechas estén por encima del contenido */
+  position: absolute; /* Mantiene el posicionamiento absoluto relativo a carousel-wrapper */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px; /* Define un ancho fijo para las flechas para crear un espaciado consistente */
+  text-align: center;
+}
+
+.carousel-arrow.left {
+  left: 0;
+}
+
+.carousel-arrow.right {
+  right: 0;
+}
+
+/* Carousel Container: Este contenedor ahora gestiona el área principal de contenido */
+.carousel-container {
+  display: flex; /* Mantiene flex para sus hijos */
+  overflow-x: hidden; /* IMPORTANTE: Oculta su propia barra de desplazamiento si la tuviera */
+  scroll-behavior: smooth;
+  gap: 8px;
+  padding: 10px 0; /* Padding vertical */
+  flex-grow: 1; /* Permite que ocupe el espacio disponible en el flex wrapper */
+  /* Añade márgenes para crear espacio para las flechas posicionadas absolutamente */
+  margin-left: 40px; /* Espacio para la flecha izquierda (ancho de la flecha) */
+  margin-right: 40px; /* Espacio para la flecha derecha (ancho de la flecha) */
+  /* Asegura que no haya barra de desplazamiento en este contenedor */
+  scrollbar-width: none; /* Para Firefox */
+  -ms-overflow-style: none; /* Para IE/Edge */
+}
+.carousel-container::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* Icon Buttons Container: Este es el área de contenido real con desplazamiento */
+.icon-buttons-container {
+  display: flex;
+  overflow-x: auto; /* IMPORTANTE: Aquí es donde debe ocurrir el desplazamiento real */
+  gap: 8px; /* Mantiene el espacio entre los botones */
+  /* Se elimina padding: 0 32px; de aquí, ya que causaba la superposición */
+  padding: 0; /* Reinicia el padding si se heredó alguno */
+  /* Oculta la barra de desplazamiento en este elemento */
+  scrollbar-width: none; /* Para Firefox */
+  -ms-overflow-style: none; /* Para IE/Edge */
+  flex-shrink: 0; /* Evita que se encoja en el contenedor flex */
+  /* Asegura que no tenga un ancho fijo que impida el desplazamiento */
+}
+
+.icon-buttons-container::-webkit-scrollbar {
+  display: none;
 }
