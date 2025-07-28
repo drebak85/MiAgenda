@@ -11,7 +11,7 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    padding: 15px;
+    padding: 0 15px; /* Añadido para evitar que el contenido toque los bordes */
 }
 
 /* ================== 🕒 FECHA & HORA HEADER ================== */
@@ -29,7 +29,8 @@ body {
 
 /* ================== 🧾 SECCIONES ================== */
   section.main-section {
-    width: calc(100% - 30px); /* deja 10px de margen a cada lado */
+      width: 100%;
+
     max-width: 480px;
     margin: 10px auto; /* separación vertical entre módulos */
     padding: 20px;
@@ -700,9 +701,9 @@ textarea {
 
 .icon-buttons-container {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Asegura que no haya salto de línea */
   gap: 10px;
-  justify-content: center;
+  justify-content: center; /* Centra los elementos cuando no llenan el contenedor */
 }
 
 /* ejemplo rápido */
@@ -824,7 +825,7 @@ textarea {
 }
 
 .actividad-actions button {
-  margin-left: 6px;
+  margin-left: 2px;
   font-size: 1.1rem;
   background: none;
   border: none;
@@ -1168,7 +1169,7 @@ textarea {
   .activity-type-buttons {
     display: flex;
     justify-content: space-between;
-    gap: 4px;
+    gap: 2px;
     flex-wrap: nowrap;
     font-size: 2em;
   }
@@ -1226,7 +1227,7 @@ textarea {
   .activity-type-buttons {
     flex-wrap: nowrap;
     justify-content: space-between;
-    gap: 4px;
+    gap: 2px;
   }
 
   .activity-type-buttons .icon-button {
@@ -1292,7 +1293,7 @@ textarea {
 .icon-buttons-container {
   display: flex;
   overflow-x: auto; /* IMPORTANTE: Aquí es donde debe ocurrir el desplazamiento real */
-  gap: 8px; /* Mantiene el espacio entre los botones */
+  gap: 2px; /* Mantiene el espacio entre los botones */
   /* Se elimina padding: 0 32px; de aquí, ya que causaba la superposición */
   padding: 0; /* Reinicia el padding si se heredó alguno */
   /* Oculta la barra de desplazamiento en este elemento */
@@ -1300,8 +1301,41 @@ textarea {
   -ms-overflow-style: none; /* Para IE/Edge */
   flex-shrink: 0; /* Evita que se encoja en el contenedor flex */
   /* Asegura que no tenga un ancho fijo que impida el desplazamiento */
+  flex-wrap: nowrap; /* Asegura que no haya salto de línea */
+  justify-content: center; /* Centra los elementos cuando no llenan el contenedor */
 }
 
 .icon-buttons-container::-webkit-scrollbar {
   display: none;
+}
+
+.actividad-actions {
+  display: flex;
+  gap: 1px; /* Reduce la separación entre los botones */
+  margin-top: 8px;
+}
+
+
+.circle-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 14px;
+  padding: 0;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .actividad-actions {
+    gap: 1px;
+  }
+  .circle-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+
 }
