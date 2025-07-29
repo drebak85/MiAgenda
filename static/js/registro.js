@@ -171,42 +171,47 @@ form.addEventListener('submit', async (e) => {
 });
 
 // Activar cámara y capturar imagen
-window.abrirCamara = async function () {
-  const constraints = {
-    video: { facingMode: { exact: "environment" } }, // cámara trasera
-    audio: false
-  };
+let stream = null;
 
+window.abrirCamara = async function () {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const constraints = {
+      video: { facingMode: { exact: "environment" } },
+      audio: false
+    };
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
     const video = document.getElementById('videoCamara');
     video.srcObject = stream;
-    video.style.display = 'block';
-
-    const tomar = confirm('¿Tomar la foto ahora?');
-    if (tomar) {
-      const canvas = document.getElementById('canvasFoto');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      stream.getTracks().forEach(track => track.stop());
-      video.style.display = 'none';
-
-      canvas.toBlob(blob => {
-        fotoCapturadaBlob = new File([blob], `foto_${Date.now()}.jpg`, { type: 'image/jpeg' });
-        alert('Foto capturada y lista para subir');
-      }, 'image/jpeg');
-    } else {
-      stream.getTracks().forEach(track => track.stop());
-      video.style.display = 'none';
-    }
+    video.play();
+    document.getElementById('modalCamara').classList.add('visible');
   } catch (error) {
-    alert('No se pudo acceder a la cámara trasera.');
+    alert('No se pudo acceder a la cámara. Prueba en un móvil o revisa permisos.');
     console.error(error);
   }
 };
+
+window.cerrarCamara = function () {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+  document.getElementById('modalCamara').classList.remove('visible');
+};
+
+window.sacarFoto = function () {
+  const video = document.getElementById('videoCamara');
+  const canvas = document.getElementById('canvasFoto');
+  const ctx = canvas.getContext('2d');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  canvas.toBlob(blob => {
+    fotoCapturadaBlob = new File([blob], `foto_${Date.now()}.jpg`, { type: 'image/jpeg' });
+    cerrarCamara();
+    alert('Foto capturada');
+  }, 'image/jpeg');
+};
+
 
 // Cargar tipos y registros al iniciar
 document.addEventListener('DOMContentLoaded', async () => {
