@@ -178,3 +178,32 @@ h2, h3 {
 .btn-foto:hover {
   background-color: #007e54;
 }
+
+.modal-camara {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 1000;
+  display: none;
+}
+
+.modal-camara.visible {
+  display: block;
+}
+
+.modal-camara video {
+  width: 300px;
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.btn-foto, .btn-cerrar {
+  margin: 10px 5px 0;
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+}
