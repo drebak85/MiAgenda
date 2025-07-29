@@ -406,13 +406,14 @@
     <button class="icon-button" data-type="Receta" id="btn-receta-actividad">
       <i class="fas fa-utensils"></i><span>Receta</span>
     </button>
-    <button class="icon-button" onclick="window.location.href='/menu'">
-      <i class="fas fa-calendar-week"></i><span>Menú</span>
-    </button>
-    <button class="icon-button lista-btn" onclick="window.location.href='/lista-compra'">
+     <button class="icon-button lista-btn" onclick="window.location.href='/lista-compra'">
       <i class="fas fa-list"></i><span>Lista</span>
       <span class="badge-lista" id="contador-lista"></span>
     </button>
+    <button class="icon-button" onclick="window.location.href='/menu'">
+      <i class="fas fa-calendar-week"></i><span>Menú</span>
+    </button>
+   
     <button class="icon-button" onclick="window.location.href='/alimentacion'">
       <i class="fas fa-calendar-check"></i><span>Alim</span>
     </button>
@@ -437,10 +438,31 @@
 <!-- Nueva sección para "Navegación" (vacía por ahora, para estructura) -->
 <section class="main-section" id="navegacion">
     <h2>NAVEGACIÓN</h2>
-    <div class="section-content" id="navegacion-container">
-        
-       
+   <div class="icon-buttons-container">
+  <div class="carousel-wrapper">
+    <button class="carousel-arrow left" id="scroll-left-nav">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <div class="carousel-container" id="carousel-nav">
+      <button class="icon-button" onclick="window.location.href='/documentos'">
+        <i class="fas fa-file-alt"></i><span>Docs</span>
+      </button>
+
+      <button class="icon-button" onclick="window.location.href='/registro'">
+        <i class="fas fa-clipboard"></i><span>Registro</span>
+      </button>
+
+      <button class="icon-button" onclick="window.location.href='/ejercicio'">
+        <i class="fas fa-dumbbell"></i><span>Ejercicio</span>
+      </button>
     </div>
+
+    <button class="carousel-arrow right" id="scroll-right-nav">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+</div>
 </section>
 </div></section></main>
 <footer>
