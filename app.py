@@ -67,6 +67,19 @@ def menu():
     
     return render_template('menu.html', fechas_con_dias=fechas_con_dias)
 
+@app.route('/documentos')
+def documentos():
+    return render_template('documentos.html')
+
+@app.route('/registro')
+def registro():
+    return render_template('registro.html')
+
+@app.route('/ejercicio')
+def ejercicio():
+    return render_template('ejercicio.html')
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
