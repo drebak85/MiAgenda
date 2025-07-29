@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  
+  <title>Documentos Importantes</title>
+  <link rel="stylesheet" href="/static/css/documentos.css">
+  <script type="module" src="/static/js/documentos.js"></script>
+</head>
+<body>
+  <section id="acceso-documentos">
+    <h2>Acceso a Documentos</h2>
+    <input type="password" id="clave-documentos" placeholder="Introduce la clave">
+    <button id="acceder-documentos">Acceder</button>
+  </section>
+
+  <section id="contenido-documentos" class="oculto">
+    <h2>Subir Documento</h2>
+    <form id="formulario-documento">
+      <input type="text" id="nombre-documento" placeholder="Nombre del documento" required />
+     <input list="tipos-opciones" id="tipo-documento" required placeholder="Selecciona o escribe un tipo" />
+<datalist id="tipos-opciones">
+  <!-- Las opciones se cargarán dinámicamente -->
+</datalist>
+
+      <input type="file" id="archivo-documento" accept="application/pdf,image/*" required />
+      <button type="submit">Guardar</button>
+    </form>
+
+    <h2>Documentos Guardados</h2>
+    <label for="filtro-tipo">Filtrar por tipo:</label>
+    <select id="filtro-tipo">
+      <option value="">Todos</option>
+    </select>
+    <div id="lista-documentos"></div>
+  </section>
+</body>
+</html>
