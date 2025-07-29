@@ -1,0 +1,102 @@
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  padding: 20px;
+  margin: 0;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+input[type="text"],
+input[type="password"],
+select,
+input[type="file"],
+button {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 10px auto;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+button {
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background-color: #005fa3;
+}
+
+#lista-documentos {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.documento-item {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+}
+
+.documento-item p {
+  margin: 8px 0;
+}
+
+.documento-item button {
+  margin-top: 10px;
+  background-color: #cc0000;
+}
+
+.documento-item button:hover {
+  background-color: #a10000;
+}
+
+.oculto {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  input, select, button {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .documento-item {
+    font-size: 14px;
+  }
+}
+
+body {
+  font-size: 16px;
+  padding: 10px;
+  max-width: 600px;
+  margin: auto;
+}
+
+form, #lista-documentos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input, select, button {
+  font-size: 1rem;
+  padding: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
