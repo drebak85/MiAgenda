@@ -42,7 +42,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const inputIngCantidad = document.getElementById('edit-ingrediente-cantidad');
   const inputIngUnidad = document.getElementById('edit-ingrediente-unidad');
   const inputIngCalorias = document.getElementById('edit-ingrediente-calorias');
-  const inputIngProteinas = document.getElementById('input-ingrediente-proteinas'); // Corregido el ID aquí
+  const inputIngProteinas = document.getElementById('edit-ingrediente-proteinas');
+
   const inputIngPrecio = document.getElementById('edit-ingrediente-precio');
 
   // Buscadores

@@ -54,14 +54,20 @@ if (!errorRutinas && rutinas) {
       Array.isArray(r.days_of_week) &&
       r.days_of_week.includes(capitalize(diaSemanaEsp));
 
-    const fechaInicio = new Date(r.date);
-    const fechaFin = r.end_date ? new Date(r.end_date) : null;
+   const fechaInicio = new Date(new Date(r.date).getFullYear(), new Date(r.date).getMonth(), new Date(r.date).getDate());
+const fechaFin = r.end_date
+  ? new Date(new Date(r.end_date).getFullYear(), new Date(r.end_date).getMonth(), new Date(r.end_date).getDate())
+  : null;
 
-    return (
-      cumpleDiaSemana &&
-      fechaInicio <= hoy &&
-      (!fechaFin || hoy <= fechaFin)
-    );
+const fechaHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+
+
+return (
+  cumpleDiaSemana &&
+  fechaInicio <= fechaHoy &&
+  (!fechaFin || fechaHoy <= fechaFin)
+);
+
   });
 
   const rutinasFormateadas = rutinasDelDia.map(r => ({
@@ -149,12 +155,19 @@ if (act.completado) actDiv.classList.add('actividad-completada');
         fin.setHours(eh, em, 0, 0);
         const diffFin = fin - ahora;
 
-        if (diffFin > 0) {
-          const min = Math.floor(diffFin / (1000 * 60));
-          tiempo = `Termina en ${min} min`;
-        } else {
-          tiempo = 'Terminada';
-        }
+       if (diffFin > 0) {
+  const min = Math.floor(diffFin / (1000 * 60));
+  if (min >= 60) {
+    const horas = Math.floor(min / 60);
+    const minutos = min % 60;
+    tiempo = `Termina en ${horas} h${minutos > 0 ? ` ${minutos} min` : ''}`;
+  } else {
+    tiempo = `Termina en ${min} min`;
+  }
+} else {
+  tiempo = 'Terminada';
+}
+
       } else {
         tiempo = 'En curso';
       }

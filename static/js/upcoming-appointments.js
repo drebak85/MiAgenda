@@ -417,3 +417,30 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+// Escuchar clicks en los botones de "Registrar"
+document.addEventListener('click', async (e) => {
+  if (e.target.closest('.btn-register')) {
+    const id = e.target.closest('.btn-register').dataset.id;
+    const cita = citas.find(c => c.id == id);
+
+    if (!cita) {
+      showMessageModal("No se encontró la cita.");
+      return;
+    }
+
+    const { error } = await supabase.from('registros').insert({
+      nombre: cita.description || '',
+      descripcion: cita.requirements?.map(r => r.text).join(', ') || '',
+      fecha: cita.date,
+      tipo: 'Cita',
+      archivo_url: null // Podrías incluir un campo si tienes archivo relacionado
+    });
+
+    if (error) {
+      console.error('Error al registrar cita:', error);
+      showMessageModal("No se pudo registrar la cita.");
+    } else {
+      showMessageModal("✅ Cita guardada como registro.");
+    }
+  }
+});
