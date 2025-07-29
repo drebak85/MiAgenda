@@ -1,0 +1,180 @@
+/* TIPOGRAFÍA MODERNA */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Centrado del contenido */
+main.main-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Mismo ancho para todos los módulos */
+.section-content {
+  width: 100%;
+  max-width: 600px;
+  background: linear-gradient(to bottom, #ffffff, #f7f9fa);
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+}
+
+/* Etiquetas */
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Encabezados */
+h2, h3 {
+  color: #222;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Agrupación de campos */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Dos columnas en línea */
+.form-grid-2cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs y selects uniformes */
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[list],
+.form-group input[type="file"],
+.form-group textarea,
+.form-group select,
+#filtro-tipo {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #333;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+/* Campo de archivo */
+.form-group input[type="file"] {
+  font-size: 0.95rem;
+}
+
+/* Área de botones */
+.form-buttons {
+  text-align: right;
+  margin-top: 1.5rem;
+}
+
+/* Botón principal */
+.btn-success {
+  background-color: #007bff;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-success:hover {
+  background-color: #0056b3;
+}
+
+/* Estilo para los registros listados */
+.registro-item {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  color: #333;
+  border: 1px solid #e0e0e0;
+}
+
+.registro-item strong {
+  color: #000;
+}
+
+.registro-item em {
+  color: #666;
+}
+
+.registro-item p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.registro-item a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.registro-item a:hover {
+  text-decoration: underline;
+}
+
+.registro-item hr {
+  border: 0;
+  border-top: 1px solid #ddd;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Select de filtro */
+#filtro-tipo {
+  background-color: #fff;
+}
+
+.form-group-horizontal {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.form-subgroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-subgroup label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.btn-foto {
+  background-color: #00a86b;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-foto:hover {
+  background-color: #007e54;
+}
