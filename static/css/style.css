@@ -808,8 +808,10 @@ textarea {
 }
 
 .actividad-item.actividad-completada {
-  opacity: 0.6;
-  text-decoration: line-through;
+  
+  background-color: #2C3E3E; /* verde oscuro */
+  color: #ccffcc	; /* texto rojo */
+
 }
 
 .actividad-item.rutina {
@@ -1388,3 +1390,7 @@ input, select, textarea {
   box-sizing: border-box;
 }
 
+#modalConfirmYes,
+#modalConfirmNo {
+  display: none !important;
+}
