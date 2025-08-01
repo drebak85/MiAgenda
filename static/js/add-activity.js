@@ -1,6 +1,9 @@
 import { supabase } from './supabaseClient.js';
 import { guardarReceta } from './recetas.js';
 
+const botonesActividad = document.getElementById("botones-actividad");
+
+
 document.addEventListener('DOMContentLoaded', () => {
   // Obtener referencias a los elementos del DOM
   const form = document.getElementById('nueva-actividad-formulario');
@@ -151,6 +154,8 @@ async function actualizarContadorNotas() {
    if (formToShow) {
   formToShow.classList.remove('oculto'); // Muestra el formulario específico
   formToShow.scrollIntoView({ behavior: 'smooth', block: 'center' }); // <--- AÑADE ESTA LÍNEA
+  if (botonesActividad) botonesActividad.classList.remove("oculto");
+
 }
 
 
@@ -168,6 +173,8 @@ async function actualizarContadorNotas() {
     // Oculta todos los formularios de tipo
     document.querySelectorAll(".tipo-formulario").forEach(form => form.classList.add("oculto"));
     descripcionInput.value = ""; // Limpia el campo de descripción
+    if (botonesActividad) botonesActividad.classList.add("oculto");
+
   });
 
   // Event listener para el envío del formulario principal
@@ -278,6 +285,8 @@ if (endDateInput && endDateInput.value) {
       tipoSeleccionado = null; // Resetea el tipo seleccionado
       // Si la función cargarAgendaHoy existe, la llama
       if (typeof cargarAgendaHoy === 'function') cargarAgendaHoy();
+      if (botonesActividad) botonesActividad.classList.add("oculto");
+
       
 
     }
