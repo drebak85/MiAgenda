@@ -97,10 +97,14 @@
     }
 
     async function cargarNotasAgrupadas() {
-      const { data, error } = await supabase
-        .from('notas')
-        .select('*')
-        .order('fecha_creacion', { ascending: false });
+      const usuarioActual = localStorage.getItem('usuario_actual');
+
+const { data, error } = await supabase
+  .from('notas')
+  .select('*')
+  .eq('usuario', usuarioActual)
+  .order('fecha_creacion', { ascending: false });
+
 
       if (error) {
         console.error("Error al obtener las notas:", error);

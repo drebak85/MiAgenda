@@ -12,6 +12,26 @@
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 
+<!-- Selector de Usuario oculto -->
+<div id="selector-usuario-wrapper" style="margin-left: auto; position: relative;">
+  <button id="toggle-selector" class="icon-button" style="background: none; border: none;">
+    <i class="fas fa-user" style="color: #00BFFF;"></i>
+  </button>
+
+  <div id="selector-usuario" class="oculto" style="position: absolute; right: 0; background: #fff; color: #000; border: 1px solid #ccc; border-radius: 6px; padding: 5px 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000;">
+    <label style="display: flex; align-items: center; gap: 6px; margin: 5px 0;">
+    <input type="radio" name="usuario" value="raul" />
+<span>Raúl</span>
+    </label>
+    <label style="display: flex; align-items: center; gap: 6px; margin: 5px 0;">
+      <input type="radio" name="usuario" value="derek" />
+<span>Derek</span>
+    </label>
+  </div>
+</div>
+
+
+
 </head>
 <body>
 <header style="display: flex; align-items: center; gap: 12px; padding: 10px;">
@@ -193,17 +213,21 @@
 </div>
 <!-- Formulario para Rutina -->
 <!-- Formulario para Rutina con fecha, 3 columnas y días con checkbox -->
+<!-- Formulario para Rutina -->
+<!-- Formulario para Rutina con fecha, 3 columnas y días con checkbox -->
 <div class="tipo-formulario oculto" id="form-rutina">
- <div class="form-grid-3cols">
+ <div class="form-grid-2cols">
   <div class="form-group">
     <label for="rutina-fecha">Fecha:</label>
     <input id="rutina-fecha" name="rutina_fecha" type="date"/>
   </div>
   <div class="form-group">
-  <label for="rutina-fecha-fin">Fecha Fin:</label>
-  <input id="rutina-fecha-fin" name="rutina_fecha_fin" type="date"/>
+    <label for="rutina-fecha-fin">Fecha Fin:</label>
+    <input id="rutina-fecha-fin" name="rutina_fecha_fin" type="date"/>
+  </div>
 </div>
 
+<div class="form-grid-2cols">
   <div class="form-group">
     <label for="rutina-hora-inicio">Hora Inicio:</label>
     <input id="rutina-hora-inicio" name="rutina_hora_inicio" type="time"/>
@@ -214,26 +238,23 @@
   </div>
 </div>
 
-
- <div class="form-group dias-checkboxes">
+<div class="form-group dias-checkboxes">
   <label>Días:</label>
   <div class="dias-semana-wrapper">
-<div class="dias-semana-wrapper">
-  <div class="dias-fila">
-    <label><input type="checkbox" name="rutina_dia_semana" value="Lunes"> L</label>
-    <label><input type="checkbox" name="rutina_dia_semana" value="Martes"> M</label>
-    <label><input type="checkbox" name="rutina_dia_semana" value="Miércoles"> X</label>
-    <label><input type="checkbox" name="rutina_dia_semana" value="Jueves"> J</label>
-  </div>
-  <div class="dias-fila">
-    <label><input type="checkbox" name="rutina_dia_semana" value="Viernes"> V</label>
-    <label><input type="checkbox" name="rutina_dia_semana" value="Sábado"> S</label>
-    <label><input type="checkbox" name="rutina_dia_semana" value="Domingo"> D</label>
+    <div class="dias-fila">
+      <label><input type="checkbox" name="rutina_dia_semana" value="Lunes"> L</label>
+      <label><input type="checkbox" name="rutina_dia_semana" value="Martes"> M</label>
+      <label><input type="checkbox" name="rutina_dia_semana" value="Miércoles"> X</label>
+      <label><input type="checkbox" name="rutina_dia_semana" value="Jueves"> J</label>
+    </div>
+    <div class="dias-fila">
+      <label><input type="checkbox" name="rutina_dia_semana" value="Viernes"> V</label>
+      <label><input type="checkbox" name="rutina_dia_semana" value="Sábado"> S</label>
+      <label><input type="checkbox" name="rutina_dia_semana" value="Domingo"> D</label>
+    </div>
   </div>
 </div>
 
-
-  </div>
 </div>
 
 </div>
@@ -421,6 +442,8 @@
     <button class="icon-button" onclick="window.location.href='/despensa'">
       <i class="fas fa-basket-shopping"></i><span>Despensa</span>
     </button>
+   
+
   </div>
 
   <button class="carousel-arrow right" id="scroll-right">
@@ -463,17 +486,11 @@
     </button>
   </div>
 </div>
-</section>
-</div></section></main>
+
+</main>
 <footer>
 </footer>
-<div class="modal oculto" id="message-modal">
-<div class="modal-content">
-<span class="close-button">×</span>
-<p id="message-text"></p>
-<button class="btn-primary" id="modal-ok-button">OK</button>
-</div>
-</div>
+
 <script src="{{ url_for('static', filename='js/supabaseClient.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/upcoming-appointments.js') }}" type="module"></script>
