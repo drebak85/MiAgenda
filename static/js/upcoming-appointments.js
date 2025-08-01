@@ -64,12 +64,15 @@ function formatFecha(fechaISO) {
 
 async function cargarCitas(showAll = false) {
     console.log(`[cargarCitas] Llamada a cargarCitas con showAll: ${showAll}`);
-    let query = supabase
-        .from('appointments')
-        .select('id, description, date, start_time, end_time, completed, requirements') // Usar start_time y end_time
-        .order('completed', { ascending: true })
-        .order('date', { ascending: true })
-        .order('start_time', { ascending: true }); // Usar start_time
+   const usuario = localStorage.getItem('usuario_actual') || 'derek'; // valor por defecto
+let query = supabase
+  .from('appointments')
+  .select('id, description, date, start_time, end_time, completed, requirements, usuario')
+  .eq('usuario', usuario) // solo citas del usuario actual
+  .order('completed', { ascending: true })
+  .order('date', { ascending: true })
+  .order('start_time', { ascending: true });
+
 
     // Eliminado: if (!showAll) { query = query.limit(LIMITE_CITAS_INICIAL); }
     // Ahora, la consulta siempre trae todas las citas, y el renderizado las limita.

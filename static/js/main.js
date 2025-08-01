@@ -4,193 +4,168 @@ import { displayCurrentDateTime } from './current-date.js';
 import { supabase } from './supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Modal eliminado
+
   // Muestra la fecha y hora actual al cargar la página.
   displayCurrentDateTime();
 
-    await rellenarCantidadTotalEnDespensa(); // <--- LLAMADA NECESARIA
-
+  // Rellena la cantidad total en la despensa si es nula.
+  await rellenarCantidadTotalEnDespensa();
 
   // Verifica la despensa y actualiza la lista de la compra, obteniendo el número de elementos faltantes.
-  const faltantes = await verificarDespensaYActualizar();
+  await verificarDespensaYActualizar(); // No necesitamos el valor de retorno aquí directamente para el contador.
 
-  // Si hay elementos faltantes, actualiza el botón de la despensa con un contador.
-  if (faltantes > 0) {
-   const btnLista = document.querySelector('.lista-btn');
+  // Mostrar contador lista compra
+  const { data: itemsLista, error } = await supabase
+    .from('lista_compra')
+    .select('id');
 
-const contadorLista = document.getElementById('contador-lista');
-if (contadorLista) {
-  contadorLista.textContent = faltantes;
-  contadorLista.style.display = 'inline-block'; // por si está oculto por CSS
-}
-
-
+  if (!error && itemsLista) {
+    const total = itemsLista.length;
+    if (total > 0) {
+      const contadorLista = document.getElementById('contador-lista');
+      if (contadorLista) {
+        contadorLista.textContent = total;
+        contadorLista.style.display = 'inline-block';
+      }
+    } else {
+      const contadorLista = document.getElementById('contador-lista');
+      if (contadorLista) {
+        contadorLista.style.display = 'none'; // Ocultar si no hay elementos
+      }
+    }
   }
+
+  // Restaura el usuario guardado y activa el modo administrador si corresponde.
+  const guardado = localStorage.getItem('usuario_actual');
+  if (guardado) {
+    const radio = document.querySelector(`input[name="usuario"][value="${guardado}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  const rol = localStorage.getItem('rol_usuario');
+  if (rol === 'admin') {
+    console.log('👑 Modo administrador activado');
+    document.body.classList.add('modo-admin');
+    document.querySelectorAll('.solo-admin').forEach(el => el.classList.remove('oculto'));
+  }
+
+  // Eventos para mostrar/ocultar selector de usuario
+  const toggleBtn = document.getElementById('toggle-selector');
+  const selector = document.getElementById('selector-usuario');
+
+  if (toggleBtn && selector) {
+    toggleBtn.addEventListener('click', () => {
+      selector.classList.toggle('oculto');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!toggleBtn.contains(e.target) && !selector.contains(e.target)) {
+        selector.classList.add('oculto');
+      }
+    });
+  }
+
+  // Evento al seleccionar usuario
+  const roles = {
+    raul: 'admin',
+    derek: 'user'
+  };
+
+  document.querySelectorAll('input[name="usuario"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const usuario = radio.value;
+      localStorage.setItem('usuario_actual', usuario);
+      localStorage.setItem('rol_usuario', roles[usuario.toLowerCase()] || 'user');
+      location.reload();
+      if (usuario === "derek") {
+        const botonesDerek = [
+          document.getElementById("btn-ingrediente-actividad"),
+          document.querySelector(".lista-btn"),
+          [...document.querySelectorAll(".icon-button")].find(btn => btn.textContent.includes("Despensa"))
+        ];
+        botonesDerek.forEach(btn => {
+          if (btn) btn.style.display = "none";
+        });
+      }
+    });
+  });
 });
 
-/**
- * Verifica los ingredientes necesarios para el menú del día,
- * los compara con la despensa y actualiza la lista de la compra.
- * @returns {Promise<number>} El número de ingredientes faltantes o con bajo stock.
- */
 async function verificarDespensaYActualizar() {
-  // Obtiene la fecha de hoy en formato 'YYYY-MM-DD'.
   const hoy = new Date().toISOString().split('T')[0];
-
-  // Consulta el menú del día para la fecha actual.
   const { data: comidasDia, error: err1 } = await supabase
     .from('comidas_dia')
     .select('receta_id')
     .eq('fecha', hoy);
 
-  // Manejo de errores si no se puede obtener el menú del día.
-  if (err1) {
-    console.error('Error al obtener el menú del día:', err1);
-    return 0; // Retorna 0 si hay un error.
-  }
+  if (err1 || !comidasDia?.length) return 0;
 
-  // Si no hay comidas para hoy, no hay nada que verificar.
-  if (!comidasDia || comidasDia.length === 0) {
-    console.log('No hay comidas planificadas para hoy.');
-    return 0;
-  }
+  let faltantes = 0;
 
-  let faltantes = 0; // Inicializa el contador de ingredientes faltantes.
-
-  // Itera sobre cada comida en el menú del día.
   for (const comida of comidasDia) {
     const recetaId = comida.receta_id;
-
-    // Obtiene los ingredientes asociados a la receta actual.
     const { data: ingredientesReceta, error: err2 } = await supabase
       .from('ingredientes_receta')
       .select('ingrediente_id, cantidad, unidad')
       .eq('receta_id', recetaId);
 
-    // Manejo de errores si no se pueden obtener los ingredientes de la receta.
-    if (err2) {
-      console.error(`Error obteniendo ingredientes para la receta ${recetaId}:`, err2);
-      continue; // Pasa a la siguiente comida si hay un error.
-    }
+    if (err2 || !ingredientesReceta?.length) continue;
 
-    // Si no hay ingredientes para esta receta, pasa a la siguiente.
-    if (!ingredientesReceta || ingredientesReceta.length === 0) {
-      console.log(`No hay ingredientes definidos para la receta ${recetaId}.`);
-      continue;
-    }
-
-    // Itera sobre cada ingrediente de la receta.
     for (const ing of ingredientesReceta) {
-      // Obtiene la descripción (nombre) del ingrediente.
       const { data: ingrediente, error: err3 } = await supabase
         .from('ingredientes_base')
         .select('nombre')
         .eq('id', ing.ingrediente_id)
         .maybeSingle();
+      if (err3 || !ingrediente?.nombre) continue;
 
-      if (err3) {
-        console.error(`Error obteniendo nombre para el ingrediente con ID: ${ing.ingrediente_id}:`, err3);
-        continue;
-      }
-
-      const nombre = ingrediente?.nombre;
-      if (!nombre) {
-        console.warn(`No se encontró nombre para el ingrediente con ID: ${ing.ingrediente_id}.`);
-        continue;
-      }
-
-      // Consulta la despensa para verificar la cantidad actual y total del ingrediente.
+      const nombre = ingrediente.nombre;
       const { data: enDespensa, error: err4 } = await supabase
         .from('despensa')
         .select('cantidad, cantidad_total')
         .eq('nombre', nombre)
         .maybeSingle();
+      if (err4) continue;
 
-      if (err4) {
-        console.error(`Error al consultar la despensa para ${nombre}:`, err4);
-        continue; // Pasa al siguiente ingrediente si hay un error en la consulta de despensa.
-      }
-
-      let agregarALista = false; // Bandera para determinar si se debe agregar a la lista de la compra.
-
-      // Si el ingrediente no está en la despensa, se debe agregar a la lista.
+      let agregarALista = false;
       if (!enDespensa) {
-        console.log(`${nombre} no encontrado en la despensa.`);
         agregarALista = true;
       } else {
-        // Si está en la despensa, verifica si la cantidad actual es menor al 15% de la cantidad total.
         const actual = parseFloat(enDespensa.cantidad);
-        const total = parseFloat(enDespensa.cantidad_total || 0); // Asegura que total sea un número.
-
-        // Si la cantidad total es 0 (no se ha definido un total) o la cantidad actual es muy baja, se agrega a la lista.
-        if (total === 0 || (total > 0 && actual / total < 0.15)) {
-          console.log(`${nombre}: Cantidad actual (${actual}) es menor al 15% de la total (${total}).`);
-          agregarALista = true;
-        } else {
-          console.log(`${nombre}: Suficiente en despensa (Actual: ${actual}, Total: ${total}).`);
-        }
+        const total = parseFloat(enDespensa.cantidad_total || 0);
+        if (total === 0 || actual / total < 0.15) agregarALista = true;
       }
 
-      // Si se debe agregar a la lista de la compra.
-         // Si se debe agregar a la lista de la compra.
       if (agregarALista) {
-        // Verifica si el ingrediente ya existe en la lista de la compra para evitar duplicados.
-        const { data: yaExiste, error: err5 } = await supabase
+        const { data: yaExiste } = await supabase
           .from('lista_compra')
           .select('id')
           .eq('nombre', nombre)
           .maybeSingle();
 
-        if (err5) {
-          console.error(`Error al verificar si ${nombre} ya existe en la lista de compra:`, err5);
-          continue; // Pasa al siguiente ingrediente si hay un error.
-        }
-
         if (!yaExiste) {
-          // Obtener más datos del ingrediente base
-          const { data: infoBase, error: errBase } = await supabase
-  .from('ingredientes_base')
-  .select('unidad, cantidad')
-  .eq('nombre', nombre)
-  .maybeSingle();
+          const { data: infoBase } = await supabase
+            .from('ingredientes_base')
+            .select('unidad, cantidad')
+            .eq('nombre', nombre)
+            .maybeSingle();
+          if (!infoBase) continue;
 
-
-          if (errBase || !infoBase) {
-            console.error(`No se pudo obtener info base de ${nombre}:`, errBase);
-            continue;
-          }
-
-          const { unidad, cantidad: cantidad_base } = infoBase;
-
-
-          // Insertar con unidad y cantidad
-          const { error: insertError } = await supabase
-            .from('lista_compra')
-            .insert({
-              nombre: nombre,
-              unidad: unidad || null,
-              cantidad: cantidad_base || null
-            });
-
-          if (insertError) {
-            console.error(`Error al insertar ${nombre} en la lista de compra:`, insertError);
-          } else {
-            console.log(`${nombre} añadido a la lista de la compra con datos completos.`);
-            faltantes++;
-          }
+          await supabase.from('lista_compra').insert({
+            nombre: nombre,
+            unidad: infoBase.unidad || null,
+            cantidad: infoBase.cantidad || null
+          });
+          faltantes++;
         } else {
-          // Ya estaba en la lista, pero cuenta como faltante.
-          console.log(`${nombre} ya está en la lista de la compra, pero se considera faltante.`);
           faltantes++;
         }
-      } // fin de if (agregarALista)
-    } // fin de for...ingredientesReceta
-  } // fin de for...comidasDia
-
-  
-
-  return faltantes; // Retorna el número total de ingredientes faltantes.
-} // fin de verificarDespensaYActualizar
-
+      }
+    }
+  }
+  return faltantes;
+}
 
 async function rellenarCantidadTotalEnDespensa() {
   const { data: despensa, error: err1 } = await supabase
@@ -198,41 +173,21 @@ async function rellenarCantidadTotalEnDespensa() {
     .select('id, nombre')
     .is('cantidad_total', null);
 
-  if (err1) {
-    console.error('❌ Error obteniendo ingredientes sin cantidad_total:', err1);
-    return;
-  }
+  if (err1) return;
 
   for (const item of despensa) {
     const { id, nombre } = item;
-
-    const { data: base, error: err2 } = await supabase
+    const { data: base } = await supabase
       .from('ingredientes_base')
       .select('cantidad')
       .eq('nombre', nombre)
       .maybeSingle();
 
-    if (err2 || !base) {
-      console.warn(`⚠️ No se pudo obtener cantidad base para ${nombre}:`, err2);
-      continue;
-    }
+    if (!base) continue;
 
-    const cantidadBase = base.cantidad;
-
-    const { error: err3 } = await supabase
+    await supabase
       .from('despensa')
-      .update({ cantidad_total: cantidadBase })
+      .update({ cantidad_total: base.cantidad })
       .eq('id', id);
-
-    if (err3) {
-      console.error(`❌ Error actualizando cantidad_total para ${nombre}:`, err3);
-    } else {
-      console.log(`✅ ${nombre}: cantidad_total actualizada a ${cantidadBase}`);
-    }
   }
 }
-
-
-
-
-

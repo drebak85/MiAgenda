@@ -5,22 +5,66 @@ import { calcularTotalesReceta } from '../utils/calculos_ingredientes.js';
 let recetasDisponibles = [];
 
 async function cargarRecetas() {
-  const { data, error } = await supabase.from("recetas").select("id, nombre");
+  // 1. Cargar recetas con sus ingredientes
+  const { data: recetas, error } = await supabase
+    .from("recetas")
+    .select(`
+      id,
+      nombre,
+      ingredientes_receta (
+        cantidad,
+        ingrediente_id
+      )
+    `);
+
   if (error) {
     console.error("Error cargando recetas:", error);
     return;
   }
-  recetasDisponibles = data;
+
+  recetasDisponibles = recetas;
+
+  // 2. Recolectar todos los IDs de ingredientes usados
+  const todosIds = new Set();
+  recetas.forEach(receta => {
+    receta.ingredientes_receta?.forEach(i => {
+      if (i.ingrediente_id) todosIds.add(i.ingrediente_id);
+    });
+  });
+
+  // 3. Cargar los ingredientes base necesarios
+  const { data: ingredientesBase, error: errorIng } = await supabase
+    .from("ingredientes_base")
+    .select("id, calorias, proteinas, cantidad, precio")
+    .in("id", Array.from(todosIds));
+
+  if (errorIng) {
+    console.error("Error al cargar ingredientes base:", errorIng);
+    return;
+  }
+
+  // 4. Crear mapa para acceso rápido
+  const mapaIngredientes = new Map();
+  ingredientesBase.forEach(ing => {
+    mapaIngredientes.set(ing.id, ing);
+  });
+
+  // 5. Llenar cada <select> con las recetas + info nutricional
   document.querySelectorAll(".selector-receta").forEach(select => {
     select.innerHTML = '<option value="">Selecciona una receta</option>';
-    data.forEach(receta => {
+    recetas.forEach(receta => {
       const option = document.createElement("option");
       option.value = receta.id;
-      option.textContent = receta.nombre;
+
+      // Calcular valores con tu función reutilizada
+      const totales = calcularTotalesReceta(receta.ingredientes_receta, Array.from(mapaIngredientes.values()));
+
+      // Mostrar el nombre y los valores de forma sutil
+option.innerHTML = `${receta.nombre} <span style="color:#7fa6c3; font-size: 0.9em;">(${totales.totalCalorias} kcal, ${totales.totalProteinas} g prot)</span>`;
       select.appendChild(option);
     });
   });
-}
+} // <--- Esta era la llave mal colocada que cerraba la función antes de tiempo
 
 async function guardarRecetaEnBD(tipo, recetaId, fecha, dia, container) {
   if (!fecha) {
@@ -140,13 +184,8 @@ async function cargarMenuGuardado() {
     acciones.classList.add("actividad-actions");
 
     const btnBorrar = document.createElement("button");
-btnBorrar.classList.add("btn-delete");
-btnBorrar.innerHTML = "🗑️";  // O usa un icono SVG si prefieres
-btnBorrar.onclick = async () => {
-  await borrarRecetaDeBD(entry.receta_id, entry.tipo, entry.fecha);
-  await cargarMenuGuardado();
-};
-
+    btnBorrar.classList.add("btn-delete");
+    btnBorrar.innerHTML = "🗑️";  // O usa un icono SVG si prefieres
     btnBorrar.onclick = async () => {
       await borrarRecetaDeBD(entry.receta_id, entry.tipo, entry.fecha);
       await cargarMenuGuardado();
@@ -158,13 +197,15 @@ btnBorrar.onclick = async () => {
     ul.appendChild(li);
 
     const { totalPrecio: precio, totalCalorias: calorias, totalProteinas: proteinas } =
-  calcularTotalesReceta(entry.recetas.ingredientes_receta, Array.from(ingredientesMap.values()));
+      calcularTotalesReceta(entry.recetas.ingredientes_receta, Array.from(ingredientesMap.values()));
 
     console.log(`Totales calculados para ${entry.recetas.nombre}: Precio=${precio.toFixed(2)}, Calorias=${calorias.toFixed(0)}, Proteinas=${proteinas.toFixed(0)}`);
 
     sumarTotales(comidaEl, precio, calorias, proteinas);
   });
   actualizarResumenSemanal();
+  actualizarTotalesPorDia();
+
   console.log("Fin de cargarMenuGuardado.");
 }
 
@@ -249,14 +290,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       await guardarRecetaEnBD(tipo, recetaId, fecha, dia, container);
     });
   });
-});
 
-document.addEventListener("DOMContentLoaded", () => {
   const dias = document.querySelectorAll(".dia-menu");
   let indice = 0;
 
   function mostrarDia(i) {
     dias.forEach((d, idx) => d.style.display = (idx === i ? "block" : "none"));
+    actualizarTotalesPorDia();
   }
 
   mostrarDia(indice);
@@ -271,3 +311,22 @@ document.addEventListener("DOMContentLoaded", () => {
     mostrarDia(indice);
   });
 });
+
+function actualizarTotalesPorDia() {
+  const secciones = document.querySelectorAll(".dia-menu");
+  secciones.forEach((seccion, i) => {
+    const comidas = seccion.querySelectorAll(".comida-dia");
+    let precio = 0, calorias = 0, proteinas = 0;
+
+    comidas.forEach(comida => {
+      precio += parseFloat(comida.querySelector(".precio").textContent.replace(" €", "") || 0);
+      calorias += parseFloat(comida.querySelector(".calorias").textContent || 0);
+      proteinas += parseFloat(comida.querySelector(".proteinas").textContent || 0);
+    });
+
+    const resumen = document.querySelectorAll(".totales-dia")[i];
+    resumen.querySelector(".precio-dia").textContent = precio.toFixed(2) + " €";
+    resumen.querySelector(".calorias-dia").textContent = calorias.toFixed(0);
+    resumen.querySelector(".proteinas-dia").textContent = proteinas.toFixed(0);
+  });
+}

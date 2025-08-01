@@ -24,10 +24,14 @@ async function cargarAgendaHoy() {
 
 
   // TAREAS
-  const { data: tareas, error: errorTareas } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('due_date', hoyStr);
+const usuarioActual = localStorage.getItem('usuario_actual');
+
+const { data: tareas, error: errorTareas } = await supabase
+  .from('tasks')
+  .select('*')
+  .eq('due_date', hoyStr)
+  .eq('usuario', usuarioActual);
+
 
   if (!errorTareas && tareas) {
     const tareasFormateadas = tareas.map(t => ({
@@ -46,7 +50,9 @@ async function cargarAgendaHoy() {
 const { data: rutinas, error: errorRutinas } = await supabase
   .from('routines')
   .select('*')
-  .eq('is_active', true);
+  .eq('is_active', true)
+  .eq('usuario', usuarioActual);
+
 
 if (!errorRutinas && rutinas) {
   const rutinasDelDia = rutinas.filter(r => {
@@ -76,7 +82,7 @@ return (
     descripcion: r.description,
     start: r.start_time || '',
     end: r.end_time || '',
-    completado: r.is_completed
+completado: rutinaTerminadaHoy(r)
   }));
 
   actividades = actividades.concat(rutinasFormateadas);
@@ -212,28 +218,35 @@ document.querySelectorAll('.btn-check').forEach(btn => {
     const actual = e.currentTarget.dataset.completado === 'true';
     const nuevoEstado = !actual;
 
-    const { error } = await supabase
-      .from(tipo === 'Tarea' ? 'tasks' : 'routines')
-      .update({ is_completed: nuevoEstado })
-      .eq('id', id);
+    const usuarioActual = localStorage.getItem('usuario_actual');
+const { error } = await supabase
+  .from(tipo === 'Tarea' ? 'tasks' : 'routines')
+  .delete()
+  .eq('id', id)
+  .eq('usuario', usuarioActual)
+
 
     if (!error) cargarAgendaHoy();
   });
 });
 
-  document.querySelectorAll('.btn-borrar').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.currentTarget.dataset.id;
-      const tipo = e.currentTarget.dataset.tipo;
+ document.querySelectorAll('.btn-borrar').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    const id = e.currentTarget.dataset.id;
+    const tipo = e.currentTarget.dataset.tipo;
 
-      const { error } = await supabase
-        .from(tipo === 'Tarea' ? 'tasks' : 'routines')
-        .delete()
-        .eq('id', id);
+    const usuarioActual = localStorage.getItem('usuario_actual');  // ✅ AÑADE ESTO
 
-      if (!error) cargarAgendaHoy();
-    });
+    const { error } = await supabase
+      .from(tipo === 'Tarea' ? 'tasks' : 'routines')
+      .delete()
+      .eq('id', id)
+      .eq('usuario', usuarioActual);  // ✅ AHORA FUNCIONA
+
+    if (!error) cargarAgendaHoy();
   });
+});
+
 
   document.querySelectorAll('.btn-editar').forEach(btn => {
   btn.addEventListener('click', async (e) => {

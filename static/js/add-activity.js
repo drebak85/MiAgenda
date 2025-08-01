@@ -22,7 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Si hay texto, guarda la nota en Supabase
-      const { error } = await supabase.from('notas').insert([{ descripcion: texto }]);
+const usuarioActual = localStorage.getItem('usuario_actual');
+const { error } = await supabase.from('notas').insert([
+  { descripcion: texto, usuario: usuarioActual }
+]);
 
       if (error) {
         // Muestra un mensaje de error si falla la operación
@@ -36,15 +39,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Función para actualizar el contador de notas
-    async function actualizarContadorNotas() {
-      const { count, error } = await supabase
-        .from('notas')
-        .select('*', { count: 'exact', head: true });
+    // Función para actualizar el contador de notas solo del usuario actual
+async function actualizarContadorNotas() {
+  const usuarioActual = localStorage.getItem('usuario_actual');
+  const { count, error } = await supabase
+    .from('notas')
+    .select('*', { count: 'exact', head: true })
+    .eq('usuario', usuarioActual);
 
-      if (!error && typeof count === 'number') {
-        const badge = document.getElementById('contador-notas');
-        if (badge) badge.textContent = count;
-      } else {
+  const badge = document.getElementById('contador-notas');
+  if (!error && badge) {
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+ else {
         console.error('Error al cargar el contador de notas:', error);
       }
     }
@@ -164,6 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!descripcion || !tipoSeleccionado) return; // Si no hay descripción o tipo, no hace nada
 
     let dataToSave = { description: descripcion };
+    // Obtener el usuario actual desde localStorage
+const usuarioActual = localStorage.getItem('usuario_actual');
+if (usuarioActual) {
+  dataToSave.usuario = usuarioActual;
+}
+
     let tableName = '';
 
     // Lógica para guardar diferentes tipos de actividades
@@ -259,6 +278,8 @@ if (endDateInput && endDateInput.value) {
       tipoSeleccionado = null; // Resetea el tipo seleccionado
       // Si la función cargarAgendaHoy existe, la llama
       if (typeof cargarAgendaHoy === 'function') cargarAgendaHoy();
+      
+
     }
   });
 });

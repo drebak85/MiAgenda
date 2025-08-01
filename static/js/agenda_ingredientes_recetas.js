@@ -235,10 +235,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const div = document.createElement('div');
       div.className = 'bg-white p-4 rounded-xl shadow-md';
       div.innerHTML = `
-        <details>
-          <summary class="flex items-center justify-between cursor-pointer text-lg text-gray-900 font-semibold">
-            ${rec.nombre}
-            <div class="flex gap-2 ml-4">
+        <div class="flex items-center justify-between mb-1">
+          <strong class="text-lg font-semibold text-gray-800">${rec.nombre}</strong>
+          <div class="flex flex-col items-end gap-2">
+            <div class="flex gap-2">
               <button class="editar-receta bg-blue-600 text-white hover:bg-blue-700 rounded-full w-8 h-8 flex items-center justify-center" data-id="${rec.id}">
                 <i class="fas fa-edit text-sm"></i>
               </button>
@@ -246,12 +246,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <i class="fas fa-trash-alt text-sm"></i>
               </button>
             </div>
-          </summary>
+            <div class="flex items-center gap-1 text-yellow-400 text-xl estrellas" data-id="${rec.id}">
+              ${[1, 2, 3].map(n => `
+                <i class="fas fa-star ${rec.puntuacion >= n ? 'text-yellow-400' : 'text-gray-300'} estrella" data-id="${rec.id}" data-valor="${n}" style="cursor:pointer"></i>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 mb-2">💰 ${totalPrecio.toFixed(2)} € — 🔥 ${Math.round(totalCalorias)} kcal — 🥚 ${Math.round(totalProteinas)} g</p>
+
+        <details>
+          <summary class="cursor-pointer text-gray-700 italic text-sm">Ver ingredientes e instrucciones</summary>
           <div class="mt-2 text-sm text-gray-700">
             <p><strong>Instrucciones:</strong> ${rec.instrucciones || 'Sin instrucciones.'}</p>
-            <h5 class="text-md font-semibold mt-3 mb-1 text-gray-800">Ingredientes:</h5>
+            <h5 class="text-md font-semibold mt-2 mb-1">Ingredientes:</h5>
             <ul class="list-disc list-inside space-y-0.5">
-              ${ingredientesHTML || '<li class="text-sm text-gray-600">No hay ingredientes definidos.</li>'}
+              ${ingredientesHTML || '<li>No hay ingredientes definidos.</li>'}
             </ul>
           </div>
         </details>
@@ -297,15 +307,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       const div = document.createElement('div');
       div.className = 'bg-white p-4 rounded-xl shadow-md'; // Clases de Tailwind
       div.innerHTML = `
-        <div class="flex items-center justify-between mb-1">
+        <div class="flex items-start justify-between mb-1">
           <strong class="text-lg font-semibold text-gray-800">${rec.nombre}</strong>
-          <div class="flex gap-2">
-            <button class="editar-receta bg-blue-600 text-white hover:bg-blue-700 rounded-full w-8 h-8 flex items-center justify-center" data-id="${rec.id}">
-              <i class="fas fa-edit text-sm"></i>
-            </button>
-            <button class="eliminar-receta bg-red-600 text-white hover:bg-red-700 rounded-full w-8 h-8 flex items-center justify-center" data-id="${rec.id}">
-              <i class="fas fa-trash-alt text-sm"></i>
-            </button>
+          <div class="flex flex-col items-end gap-2">
+            <div class="flex gap-2">
+              <button class="editar-receta bg-blue-600 text-white hover:bg-blue-700 rounded-full w-8 h-8 flex items-center justify-center" data-id="${rec.id}">
+                <i class="fas fa-edit text-sm"></i>
+              </button>
+              <button class="eliminar-receta bg-red-600 text-white hover:bg-red-700 rounded-full w-8 h-8 flex items-center justify-center" data-id="${rec.id}">
+                <i class="fas fa-trash-alt text-sm"></i>
+              </button>
+            </div>
+            <div class="flex items-center gap-1 text-yellow-400 text-xl estrellas" data-id="${rec.id}">
+              ${[1, 2, 3].map(n => `
+                <i class="fas fa-star ${rec.puntuacion >= n ? 'text-yellow-400' : 'text-gray-300'} estrella" data-id="${rec.id}" data-valor="${n}" style="cursor:pointer"></i>
+              `).join('')}
+            </div>
           </div>
         </div>
         <p class="text-sm text-gray-600 mb-2">💰 ${totalPrecio.toFixed(2)} € — 🔥 ${Math.round(totalCalorias)} kcal — 🥚 ${Math.round(totalProteinas)} g</p>
@@ -693,6 +710,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Se puede llamar a esta función desde la consola del navegador si se necesita actualizar totales de recetas existentes
   // window.actualizarTotalesDeTodasLasRecetas = async function() { ... }
+  // --- Estrellas para puntuación ---
+document.addEventListener('click', async (e) => {
+  const estrella = e.target.closest('.estrella');
+  if (estrella) {
+    const recetaId = estrella.dataset.id;
+    const valor = parseInt(estrella.dataset.valor);
+
+    // Actualiza en Supabase
+    const { error } = await supabase
+      .from('recetas')
+      .update({ puntuacion: valor })
+      .eq('id', recetaId);
+
+   if (error) {
+  console.error('Error actualizando puntuación:', error);
+  showCustomModal('Error al guardar la puntuación.');
+} else {
+  // Actualiza visualmente las estrellas sin recargar
+  const estrellas = document.querySelectorAll(`.estrellas[data-id="${recetaId}"] .estrella`);
+  estrellas.forEach((estrellaEl) => {
+    const val = parseInt(estrellaEl.dataset.valor);
+    estrellaEl.classList.remove('text-yellow-400', 'text-gray-300');
+    estrellaEl.classList.add(val <= valor ? 'text-yellow-400' : 'text-gray-300');
+  });
+}
+
+  }
+});
+
 });
 
 // Custom Modal HTML (add this to your main HTML file, e.g., index.html)

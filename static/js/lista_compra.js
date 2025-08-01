@@ -350,4 +350,81 @@ document.addEventListener('DOMContentLoaded', () => {
   supermercado2Select.addEventListener('change', cargarLista);
   cargarLista();
   cargarPendientes();
+  generarListaAutomaticaDesdeMenu(); // 👈 Añade esta línea
+  async function generarListaAutomaticaDesdeMenu() {
+  const hoy = new Date().toISOString().split('T')[0];
+
+  const { data: comidasDia, error } = await supabase
+    .from('comidas_dia')
+    .select(`
+      receta_id,
+      recetas (
+        nombre,
+        ingredientes_receta (
+          cantidad,
+          unidad,
+          ingrediente_id
+        )
+      )
+    `)
+    .eq('fecha', hoy);
+
+  if (error) {
+    console.error("Error al obtener comidas del día:", error.message);
+    return;
+  }
+
+  if (!comidasDia || comidasDia.length === 0) return;
+
+  // Recoge todas las combinaciones de ingredientes
+  const ingredientesParaInsertar = new Map();
+
+  for (const comida of comidasDia) {
+    const receta = comida.recetas;
+    if (!receta || !receta.ingredientes_receta) continue;
+
+    for (const ing of receta.ingredientes_receta) {
+      const id = ing.ingrediente_id;
+      const cantidad = parseFloat(ing.cantidad) || 0;
+      const clave = `${id}-${ing.unidad}`;
+
+      if (!ingredientesParaInsertar.has(clave)) {
+        ingredientesParaInsertar.set(clave, { id, cantidad, unidad: ing.unidad });
+      } else {
+        ingredientesParaInsertar.get(clave).cantidad += cantidad;
+      }
+    }
+  }
+
+  const ids = Array.from(ingredientesParaInsertar.values()).map(i => i.id);
+
+  const { data: ingredientesBase } = await supabase
+    .from('ingredientes_base')
+    .select('id, description')
+    .in('id', ids);
+
+  for (const item of ingredientesParaInsertar.values()) {
+    const nombre = ingredientesBase.find(i => i.id === item.id)?.description;
+    if (!nombre) continue;
+
+    // Evitar duplicados si ya está en la lista
+    const { data: yaExiste } = await supabase
+      .from('lista_compra')
+      .select('id')
+      .eq('nombre', nombre)
+      .maybeSingle();
+
+    if (!yaExiste) {
+      await supabase.from('lista_compra').insert([
+        { nombre, cantidad: item.cantidad, unidad: item.unidad }
+      ]);
+    }
+  }
+
+  cargarLista(); // recarga visual
+  cargarPendientes();
+}
+
 });
+
+
