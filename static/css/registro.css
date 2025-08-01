@@ -194,3 +194,20 @@ input[type="file"] {
     padding: 1rem;
   }
 }
+
+.registro-fecha {
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+
+.mes-titulo {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #333;
+  background-color: #e0e0e0;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  margin: 2rem 0 1rem;
+  text-align: center;
+}
