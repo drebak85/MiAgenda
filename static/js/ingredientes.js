@@ -14,7 +14,8 @@ export async function guardarIngrediente() {
     return;
   }
 
-  const { error } = await supabase.from('ingredientes').insert([{
+  const { error } = await supabase.from('ingredientes_supermercado').insert([
+{
     nombre,
     supermercado,
     precio,

@@ -8,6 +8,7 @@ const listaRegistros = document.getElementById('registros-lista');
 
 let fotoCapturadaBlob = null;
 
+// Cargar tipos únicos
 async function cargarTipos() {
   const { data, error } = await supabase.from('registros').select('tipo');
   if (data) {
@@ -27,6 +28,7 @@ async function cargarTipos() {
   }
 }
 
+// Subir archivo o imagen a Supabase Storage
 async function subirArchivo(archivo) {
   if (!archivo) return null;
 
@@ -55,6 +57,7 @@ async function subirArchivo(archivo) {
   return urlData.publicUrl;
 }
 
+// Mostrar registros agrupados por fecha
 async function mostrarRegistros() {
   const filtro = filtroTipo.value;
   let query = supabase.from('registros').select('*').order('fecha', { ascending: false });
@@ -66,36 +69,18 @@ async function mostrarRegistros() {
 
   const agrupado = {};
   data.forEach(r => {
-    const fecha = new Date(r.fecha);
-    const mesAnyo = fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-    if (!agrupado[mesAnyo]) agrupado[mesAnyo] = [];
-    agrupado[mesAnyo].push(r);
+    if (!agrupado[r.fecha]) agrupado[r.fecha] = [];
+    agrupado[r.fecha].push(r);
   });
 
   listaRegistros.innerHTML = '';
   Object.keys(agrupado).forEach(fecha => {
     const bloque = document.createElement('div');
-    bloque.innerHTML = `<h3 class="mes-titulo">${fecha}</h3>`;
+    bloque.innerHTML = `<h3>${fecha}</h3>`;
     agrupado[fecha].forEach(reg => {
       const div = document.createElement('div');
       div.className = 'registro-item';
-
-      const fechaExacta = new Date(reg.fecha).toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-
-     function tipoAColorPastel(tipo) {
-  const hash = [...tipo].reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const hue = hash % 360;
-  return `hsl(${hue}, 70%, 85%)`;
-}
-
-div.style.backgroundColor = tipoAColorPastel(reg.tipo);
-
       div.innerHTML = `
-        <div class="registro-fecha"><i class="fas fa-calendar-alt"></i> ${fechaExacta}</div>
         <strong>${reg.nombre}</strong> <em>(${reg.tipo})</em><br>
         ${reg.descripcion ? `<p>${reg.descripcion}</p>` : ''}
         ${
@@ -111,9 +96,9 @@ div.style.backgroundColor = tipoAColorPastel(reg.tipo);
         </div>
         <hr>
       `;
-
       bloque.appendChild(div);
 
+      // Botón borrar
       div.querySelector('.btn-borrar').addEventListener('click', async () => {
         if (confirm('¿Borrar este registro?')) {
           await supabase.from('registros').delete().eq('id', reg.id);
@@ -121,6 +106,7 @@ div.style.backgroundColor = tipoAColorPastel(reg.tipo);
         }
       });
 
+      // Botón editar
       div.querySelector('.btn-editar').addEventListener('click', () => {
         document.getElementById('nombre').value = reg.nombre;
         document.getElementById('descripcion').value = reg.descripcion || '';
@@ -134,6 +120,7 @@ div.style.backgroundColor = tipoAColorPastel(reg.tipo);
   });
 }
 
+// Guardar nuevo registro o actualizar
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -167,6 +154,7 @@ form.addEventListener('submit', async (e) => {
       await cargarTipos();
       await mostrarRegistros();
     }
+
   } else {
     const { error } = await supabase.from('registros').insert([{
       nombre, descripcion, fecha, tipo, archivo_url
@@ -182,6 +170,7 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
+// Activar cámara y capturar imagen
 let stream = null;
 
 window.abrirCamara = async function () {
@@ -223,10 +212,13 @@ window.sacarFoto = function () {
   }, 'image/jpeg');
 };
 
+
+// Cargar tipos y registros al iniciar
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('fecha').valueAsDate = new Date();
   await cargarTipos();
   await mostrarRegistros();
 });
 
+// Filtro por tipo
 filtroTipo.addEventListener('change', mostrarRegistros);

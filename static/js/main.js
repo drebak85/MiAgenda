@@ -191,3 +191,46 @@ async function rellenarCantidadTotalEnDespensa() {
       .eq('id', id);
   }
 }
+
+// Verifica la sesión real desde Flask
+fetch('/api/usuario')
+  .then(response => {
+    if (response.status === 401 || response.status === 403) {
+      // 🔁 Si no hay sesión válida, redirigir al login
+      window.location.href = "/login";
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.username) {
+      const spanNombre = document.getElementById('nombre-usuario');
+      if (spanNombre) {
+        spanNombre.textContent = data.username;
+      }
+
+
+      // Guardamos en localStorage si no estaba
+      localStorage.setItem('usuario_actual', data.username);
+    } else {
+      // Si por algún motivo no viene username, redirigimos igual
+      window.location.href = "/login";
+    }
+  })
+  .catch(error => {
+    console.error('Error al verificar la sesión:', error);
+    window.location.href = "/login";
+  });
+
+  // BOTÓN DE CERRAR SESIÓN
+document.getElementById("cerrar-sesion")?.addEventListener("click", async () => {
+  try {
+    await fetch("/logout", { method: "POST" });
+    localStorage.removeItem("usuario_actual");
+    localStorage.removeItem("rol_usuario");
+    sessionStorage.clear(); // Por si se guarda algo en sesión
+    window.location.href = "/login"; // ✅ Redirige al login directamente
+  } catch (error) {
+    console.error("Error al cerrar sesión:", error);
+    window.location.href = "/login"; // Redirige igual por si acaso
+  }
+});
