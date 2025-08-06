@@ -12,23 +12,7 @@
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 
-<!-- Selector de Usuario oculto -->
-<div id="selector-usuario-wrapper" style="margin-left: auto; position: relative;">
-  <button id="toggle-selector" class="icon-button" style="background: none; border: none;">
-    <i class="fas fa-user" style="color: #00BFFF;"></i>
-  </button>
 
-  <div id="selector-usuario" class="oculto" style="position: absolute; right: 0; background: #fff; color: #000; border: 1px solid #ccc; border-radius: 6px; padding: 5px 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000;">
-    <label style="display: flex; align-items: center; gap: 6px; margin: 5px 0;">
-    <input type="radio" name="usuario" value="raul" />
-<span>Raúl</span>
-    </label>
-    <label style="display: flex; align-items: center; gap: 6px; margin: 5px 0;">
-      <input type="radio" name="usuario" value="derek" />
-<span>Derek</span>
-    </label>
-  </div>
-</div>
 
 
 
@@ -37,12 +21,27 @@
 <header style="display: flex; align-items: center; gap: 12px; padding: 10px;">
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  
 <div class="header-date" id="fechaHora"></div>
 <div id="botonCalendario">
 <a href="{{ url_for('calendario') }}" style="display: inline-block; padding: 10px; border-radius: 10px; background-color: #f0f0f0; border: 1px solid #ccc; text-decoration: none;">
 <i class="fas fa-calendar-alt" style="font-size: 20px; color: #333;"></i>
 </a>
 </div>
+<!-- Selector de Usuario oculto -->
+<!-- NUEVO BLOQUE DE USUARIO ACTIVO -->
+<div id="usuario-activo" style="margin-left: auto; position: relative; display: flex; flex-direction: column; align-items: center;">
+  <button id="usuario-menu-btn" class="icon-button" style="background: none; border: none;">
+    <i class="fas fa-user-circle" style="font-size: 24px; color: #00BFFF;"></i>
+  </button>
+  <span id="nombre-usuario" style="font-size: 14px; color: white;">Usuario</span>
+  <div id="menu-usuario" class="oculto" style="position: absolute; top: 50px; right: 0; background: white; color: black; padding: 10px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+    <button id="cerrar-sesion" style="background: none; border: none; color: red; cursor: pointer;">
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+  </div>
+</div>
+
 </header>
 <main>
 <!-- Sección de Próximas Citas -->
@@ -501,7 +500,17 @@
 <script src="{{ url_for('static', filename='js/today-agenda.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/recetas.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/comida_dia.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/usuario.js') }}" type="module"></script>
+
 </body>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const username = localStorage.getItem("username");
+  if (username) {
+    document.getElementById("nombre-usuario").textContent = username;
+  }
+});
+</script>
 
 
 <script>
