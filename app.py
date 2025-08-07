@@ -100,6 +100,11 @@ def documentos():
 def ejercicio():
     return render_template('ejercicio.html')
 
+@app.route('/registro')
+@login_requerido
+def registro():
+    return render_template('registro.html')
+
 
 
 @app.route('/registro-usuario') # Ruta para la página de registro de usuarios
