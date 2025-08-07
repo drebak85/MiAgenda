@@ -52,7 +52,8 @@ form.addEventListener('submit', async (e) => {
 
   const nombres = [...new Set(resultado.map(s => s.trim()).filter(Boolean))];
   for (const nombre of nombres) {
-    await supabase.from('lista_compra').insert([{ nombre }]);
+const usuario = localStorage.getItem('usuario');
+await supabase.from('lista_compra').insert([{ nombre, usuario }]);
   }
 
   inputNombre.value = '';
@@ -61,11 +62,13 @@ form.addEventListener('submit', async (e) => {
 });
 
 async function cargarLista() {
-  const { data: lista } = await supabase
+  const usuario = localStorage.getItem('usuario');
+const { data: lista } = await supabase
   .from('lista_compra')
   .select('id, nombre, completado, cantidad, unidad')
+  .eq('usuario', usuario)
+  .order('created_at', { ascending: true });
 
-    .order('created_at', { ascending: true });
 
   if (!lista || lista.length === 0) {
     container.innerHTML = '<p>No hay ingredientes en la lista.</p>';
@@ -280,10 +283,13 @@ function editarItem(e) {
 
 
 document.getElementById('agregar-completados-despensa').addEventListener('click', async () => {
-  const { data: completados } = await supabase
-    .from('lista_compra')
-    .select('*')
-    .eq('completado', true);
+  const usuario = localStorage.getItem('usuario');
+const { data: completados } = await supabase
+  .from('lista_compra')
+  .select('*')
+  .eq('completado', true)
+  .eq('usuario', usuario);
+
 
   for (const item of completados) {
     // Obtener cantidad y unidad reales del ingrediente
@@ -415,9 +421,11 @@ document.addEventListener('DOMContentLoaded', () => {
       .maybeSingle();
 
     if (!yaExiste) {
-      await supabase.from('lista_compra').insert([
-        { nombre, cantidad: item.cantidad, unidad: item.unidad }
-      ]);
+      const usuario = localStorage.getItem('usuario');
+await supabase.from('lista_compra').insert([
+  { nombre, cantidad: item.cantidad, unidad: item.unidad, usuario }
+]);
+
     }
   }
 

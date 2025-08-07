@@ -116,11 +116,13 @@ export async function guardarReceta() {
     const ingredientesJSON = JSON.stringify(ingredientesRecetaSeleccionados);
 
     try {
-        const { data: receta, error: recetaError } = await supabase
-            .from('recetas')
-            .insert([{ nombre, instrucciones, ingredientes: ingredientesJSON }]) // Guardar el JSON
-            .select()
-            .single();
+        const usuario = localStorage.getItem('usuario');
+const { data: receta, error: recetaError } = await supabase
+  .from('recetas')
+  .insert([{ nombre, instrucciones, ingredientes: ingredientesJSON, usuario }])
+  .select()
+  .single();
+
 
         if (recetaError) throw recetaError;
 

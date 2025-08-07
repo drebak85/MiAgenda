@@ -25,19 +25,23 @@ document.addEventListener('DOMContentLoaded', () => {
   async function cargarComidaDelDia() {
     const hoy = new Date().toISOString().split('T')[0];
 
-    const { data, error } = await supabase
-      .from('comidas_dia')
-      .select(`
-        id, is_completed, tipo, receta_id,
-        recetas (
-          nombre,
-          ingredientes_receta (
-            cantidad, unidad, ingrediente_id
-          )
-        )
-      `)
-      .eq('fecha', hoy)
-      .eq('tipo', tipoActual);
+const usuario = localStorage.getItem('usuario');
+
+const { data, error } = await supabase
+  .from('comidas_dia')
+  .select(`
+    id, is_completed, tipo, receta_id,
+    recetas (
+      nombre,
+      ingredientes_receta (
+        cantidad, unidad, ingrediente_id
+      )
+    )
+  `)
+  .eq('fecha', hoy)
+  .eq('tipo', tipoActual)
+  .eq('usuario', usuario);
+
 
     contenedor.innerHTML = '';
 
@@ -101,19 +105,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const nombre = ingBase.description;
             const cantidadUsada = parseFloat(ing.cantidad);
 
-            const { data: despensaItem } = await supabase
-              .from('despensa')
-              .select('id, cantidad')
-              .eq('nombre', nombre)
-              .maybeSingle();
+            const usuario = localStorage.getItem('usuario');
+const { data: despensaItem } = await supabase
+  .from('despensa')
+  .select('id, cantidad')
+  .eq('nombre', nombre)
+  .eq('usuario', usuario)
+  .maybeSingle();
+
 
             if (despensaItem) {
               const cantidadActual = parseFloat(despensaItem.cantidad) || 0;
               const nuevaCantidad = Math.max(cantidadActual - cantidadUsada, 0);
               await supabase
-                .from('despensa')
-                .update({ cantidad: nuevaCantidad })
-                .eq('id', despensaItem.id);
+  .from('despensa')
+  .update({ cantidad: nuevaCantidad })
+  .eq('id', despensaItem.id)
+  .eq('usuario', usuario);
+
             }
           }
         }

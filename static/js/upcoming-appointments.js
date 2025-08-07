@@ -1,6 +1,20 @@
 
 import { supabase } from './supabaseClient.js';
 
+async function esperarUsuarioActual() {
+  return new Promise((resolve) => {
+    const intervalo = setInterval(() => {
+      const usuario = localStorage.getItem("usuario_actual"); // ✅ CORRECTO
+      if (usuario) {
+        clearInterval(intervalo);
+        resolve(usuario);
+      }
+    }, 100);
+  });
+}
+
+
+
 const container = document.getElementById('citas-container');
 const formEditar = document.getElementById('form-editar-cita');
 const editarFormulario = document.getElementById('editar-formulario');
@@ -64,7 +78,8 @@ function formatFecha(fechaISO) {
 
 async function cargarCitas(showAll = false) {
     console.log(`[cargarCitas] Llamada a cargarCitas con showAll: ${showAll}`);
-   const usuario = localStorage.getItem('usuario_actual') || 'derek'; // valor por defecto
+const usuario = localStorage.getItem('usuario_actual');
+if (!usuario) return;
 let query = supabase
   .from('appointments')
   .select('id, description, date, start_time, end_time, completed, requirements, usuario')
@@ -410,13 +425,21 @@ async function borrarCita(id) {
     cargarCitas(showingAllCitas); // Recargar manteniendo el estado actual (expandido o recogido)
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    cargarCitas(); // Cargar citas inicialmente
-    
-    btnVerMasCitas.addEventListener('click', () => {
-        showingAllCitas = !showingAllCitas; // Alternar el estado
-        cargarCitas(showingAllCitas); // Volver a cargar citas con el nuevo estado
-    });
+document.addEventListener('DOMContentLoaded', async () => {
+  const usuario = await esperarUsuarioActual();
+
+
+  if (!usuario) {
+    console.warn("⚠️ No se encontró el usuario en localStorage. No se cargarán citas.");
+    return;
+  }
+
+  cargarCitas(); // solo si hay usuario definido
+
+  btnVerMasCitas.addEventListener('click', () => {
+    showingAllCitas = !showingAllCitas;
+    cargarCitas(showingAllCitas);
+  });
 });
 
 
@@ -432,12 +455,14 @@ document.addEventListener('click', async (e) => {
     }
 
     const { error } = await supabase.from('registros').insert({
-      nombre: cita.description || '',
-      descripcion: cita.requirements?.map(r => r.text).join(', ') || '',
-      fecha: cita.date,
-      tipo: 'Cita',
-      archivo_url: null // Podrías incluir un campo si tienes archivo relacionado
-    });
+  usuario: localStorage.getItem('usuario_actual'),
+  nombre: cita.description || '',
+  descripcion: cita.requirements?.map(r => r.text).join(', ') || '',
+  fecha: cita.date,
+  tipo: 'Cita',
+  archivo_url: null
+});
+
 
     if (error) {
       console.error('Error al registrar cita:', error);

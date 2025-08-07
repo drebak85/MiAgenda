@@ -120,17 +120,19 @@ function renderizarActividades(actividades) {
   const ahora = new Date();
 
   actividades.sort((a, b) => {
+    // Primero, ordena por el estado de completado
     if (a.completado !== b.completado) {
-      return a.completado ? 1 : -1;
+      return a.completado ? 1 : -1; // Los completados van al final
     }
+    // Luego, ordena por la hora de inicio
     return (a.start || '').localeCompare(b.start || '');
   });
 
   actividades.forEach(act => {
     const actDiv = document.createElement('div');
     actDiv.classList.add('actividad-item');
-actDiv.classList.add(act.tipo.toLowerCase()); // "tarea" o "rutina"
-if (act.completado) actDiv.classList.add('actividad-completada');
+    actDiv.classList.add(act.tipo.toLowerCase()); // "tarea" o "rutina"
+    if (act.completado) actDiv.classList.add('actividad-completada');
 
 
     let tiempo = '';
@@ -141,19 +143,19 @@ if (act.completado) actDiv.classList.add('actividad-completada');
       const diffInicio = inicio - ahora;
 
       if (diffInicio > 0) {
-  const min = Math.floor(diffInicio / (1000 * 60));
-  if (min < 60) {
-    tiempo = `Empieza en ${min} min`;
-  } else if (min < 1440) {
-    const horas = Math.floor(min / 60);
-    const minutos = min % 60;
-    tiempo = `Empieza en ${horas} h ${minutos} min`;
-  } else {
-    const dias = Math.floor(min / 1440);
-    const horas = Math.floor((min % 1440) / 60);
-    tiempo = `Empieza en ${dias} d ${horas} h`;
-  }
-} else if (act.end && act.end.includes(':')) {
+        const min = Math.floor(diffInicio / (1000 * 60));
+        if (min < 60) {
+          tiempo = `Empieza en ${min} min`;
+        } else if (min < 1440) {
+          const horas = Math.floor(min / 60);
+          const minutos = min % 60;
+          tiempo = `Empieza en ${horas} h ${minutos} min`;
+        } else {
+          const dias = Math.floor(min / 1440);
+          const horas = Math.floor((min % 1440) / 60);
+          tiempo = `Empieza en ${dias} d ${horas} h`;
+        }
+      } else if (act.end && act.end.includes(':')) {
 
 
         const [eh, em] = act.end.split(':').map(Number);
@@ -161,18 +163,18 @@ if (act.completado) actDiv.classList.add('actividad-completada');
         fin.setHours(eh, em, 0, 0);
         const diffFin = fin - ahora;
 
-       if (diffFin > 0) {
-  const min = Math.floor(diffFin / (1000 * 60));
-  if (min >= 60) {
-    const horas = Math.floor(min / 60);
-    const minutos = min % 60;
-    tiempo = `Termina en ${horas} h${minutos > 0 ? ` ${minutos} min` : ''}`;
-  } else {
-    tiempo = `Termina en ${min} min`;
-  }
-} else {
-  tiempo = 'Terminada';
-}
+        if (diffFin > 0) {
+          const min = Math.floor(diffFin / (1000 * 60));
+          if (min >= 60) {
+            const horas = Math.floor(min / 60);
+            const minutos = min % 60;
+            tiempo = `Termina en ${horas} h${minutos > 0 ? ` ${minutos} min` : ''}`;
+          } else {
+            tiempo = `Termina en ${min} min`;
+          }
+        } else {
+          tiempo = 'Terminada';
+        }
 
       } else {
         tiempo = 'En curso';
@@ -182,26 +184,27 @@ if (act.completado) actDiv.classList.add('actividad-completada');
     }
 
     actDiv.innerHTML = `
-  <div class="actividad-info">
-    <span class="actividad-hora">
-  ${formatHora(act.start)}${formatHora(act.end) ? ` - ${formatHora(act.end)}` : ''}
-</span>
+      <div class="actividad-info">
+        <span class="actividad-hora">
+      ${formatHora(act.start)}${formatHora(act.end) ? ` - ${formatHora(act.end)}` : ''}
+    </span>
 
-    <span class="actividad-descripcion">${act.descripcion}</span>
-    <span class="actividad-tiempo">${tiempo}</span>
-  </div>
-  <div class="actividad-actions">
-    <button class="btn-check" data-id="${act.id}" data-tipo="${act.tipo}" data-completado="${act.completado}">
-      <span class="circle-btn green">✔️</span>
-    </button>
-    <button class="btn-editar" data-id="${act.id}" data-tipo="${act.tipo}">
-      <span class="circle-btn yellow">✏️</span>
-    </button>
-    <button class="btn-borrar" data-id="${act.id}" data-tipo="${act.tipo}">
-      <span class="circle-btn red">🗑️</span>
-    </button>
-  </div>
-`;
+        <span class="actividad-descripcion">${act.descripcion}</span>
+        <span class="actividad-tiempo">${tiempo}</span>
+      </div>
+      <div class="actividad-actions">
+        <!-- El botón de completar ahora actualiza el estado, no borra -->
+        <button class="btn-check" data-id="${act.id}" data-tipo="${act.tipo}" data-completado="${act.completado}" ${act.tipo === 'Rutina' ? 'disabled' : ''}>
+          <span class="circle-btn green">✔️</span>
+        </button>
+        <button class="btn-editar" data-id="${act.id}" data-tipo="${act.tipo}">
+          <span class="circle-btn yellow">✏️</span>
+        </button>
+        <button class="btn-borrar" data-id="${act.id}" data-tipo="${act.tipo}">
+          <span class="circle-btn red">🗑️</span>
+        </button>
+      </div>
+    `;
 
 
     container.appendChild(actDiv);
@@ -211,113 +214,112 @@ if (act.completado) actDiv.classList.add('actividad-completada');
 }
 
 function agregarEventos() {
-document.querySelectorAll('.btn-check').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    const id = e.currentTarget.dataset.id;
-    const tipo = e.currentTarget.dataset.tipo;
-    const actual = e.currentTarget.dataset.completado === 'true';
-    const nuevoEstado = !actual;
+  document.querySelectorAll('.btn-check').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.currentTarget.dataset.id;
+      const tipo = e.currentTarget.dataset.tipo;
+      const actual = e.currentTarget.dataset.completado === 'true';
+      const nuevoEstado = !actual;
 
-    const usuarioActual = localStorage.getItem('usuario_actual');
-const { error } = await supabase
-  .from(tipo === 'Tarea' ? 'tasks' : 'routines')
-  .delete()
-  .eq('id', id)
-  .eq('usuario', usuarioActual)
+      // Actualizar el estado de la tarea en la base de datos
+      if (tipo === 'Tarea') {
+        const { error } = await supabase
+          .from('tasks')
+          .update({ is_completed: nuevoEstado })
+          .eq('id', id);
 
-
-    if (!error) cargarAgendaHoy();
+        if (!error) cargarAgendaHoy();
+      }
+      // Las rutinas se autocompletan por el tiempo, no por un botón
+      
+    });
   });
-});
 
- document.querySelectorAll('.btn-borrar').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    const id = e.currentTarget.dataset.id;
-    const tipo = e.currentTarget.dataset.tipo;
+  document.querySelectorAll('.btn-borrar').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.currentTarget.dataset.id;
+      const tipo = e.currentTarget.dataset.tipo;
 
-    const usuarioActual = localStorage.getItem('usuario_actual');  // ✅ AÑADE ESTO
+      const usuarioActual = localStorage.getItem('usuario_actual');
+      const { error } = await supabase
+        .from(tipo === 'Tarea' ? 'tasks' : 'routines')
+        .delete()
+        .eq('id', id)
+        .eq('usuario', usuarioActual);
 
-    const { error } = await supabase
-      .from(tipo === 'Tarea' ? 'tasks' : 'routines')
-      .delete()
-      .eq('id', id)
-      .eq('usuario', usuarioActual);  // ✅ AHORA FUNCIONA
-
-    if (!error) cargarAgendaHoy();
+      if (!error) cargarAgendaHoy();
+    });
   });
-});
 
 
   document.querySelectorAll('.btn-editar').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    const id = e.currentTarget.dataset.id;
-    const tipo = e.currentTarget.dataset.tipo;
+    btn.addEventListener('click', async (e) => {
+      const id = e.currentTarget.dataset.id;
+      const tipo = e.currentTarget.dataset.tipo;
 
-    const { data, error } = await supabase
-      .from(tipo === 'Tarea' ? 'tasks' : 'routines')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error || !data) {
-      console.error("No se pudo obtener la actividad:", error);
-      return;
-    }
-
-    // Crear el formulario visualmente bonito
-    const formContainer = document.createElement('div');
-    formContainer.classList.add('form-overlay');
-
-    formContainer.innerHTML = `
-      <form class="formulario-edicion">
-        <h3>Editar ${tipo}</h3>
-        <label>Descripción:
-          <input type="text" name="descripcion" value="${data.description}" required>
-        </label>
-        <label>Hora inicio:
-          <input type="time" name="start" value="${data.start_time || ''}">
-        </label>
-        <label>Hora fin:
-          <input type="time" name="end" value="${data.end_time || ''}">
-        </label>
-        <div class="form-botones">
-          <button type="submit">Guardar</button>
-          <button type="button" id="cancelarEdicion">Cancelar</button>
-        </div>
-      </form>
-    `;
-    document.body.appendChild(formContainer);
-
-    // Cancelar
-    formContainer.querySelector('#cancelarEdicion').onclick = () => formContainer.remove();
-
-    // Guardar cambios
-    formContainer.querySelector('form').onsubmit = async (ev) => {
-      ev.preventDefault();
-      const nuevaDescripcion = ev.target.descripcion.value;
-      const nuevaHoraInicio = ev.target.start.value;
-      const nuevaHoraFin = ev.target.end.value;
-
-      const { error: errorUpdate } = await supabase
+      const { data, error } = await supabase
         .from(tipo === 'Tarea' ? 'tasks' : 'routines')
-        .update({
-          description: nuevaDescripcion,
-          start_time: nuevaHoraInicio || null,
-          end_time: nuevaHoraFin || null
-        })
-        .eq('id', id);
+        .select('*')
+        .eq('id', id)
+        .single();
 
-      if (errorUpdate) {
-        console.error("Error al actualizar:", errorUpdate);
-      } else {
-        formContainer.remove();
-        cargarAgendaHoy();
+      if (error || !data) {
+        console.error("No se pudo obtener la actividad:", error);
+        return;
       }
-    };
+
+      // Crear el formulario visualmente bonito
+      const formContainer = document.createElement('div');
+      formContainer.classList.add('form-overlay');
+
+      formContainer.innerHTML = `
+        <form class="formulario-edicion">
+          <h3>Editar ${tipo}</h3>
+          <label>Descripción:
+            <input type="text" name="descripcion" value="${data.description}" required>
+          </label>
+          <label>Hora inicio:
+            <input type="time" name="start" value="${data.start_time || ''}">
+          </label>
+          <label>Hora fin:
+            <input type="time" name="end" value="${data.end_time || ''}">
+          </label>
+          <div class="form-botones">
+            <button type="submit">Guardar</button>
+            <button type="button" id="cancelarEdicion">Cancelar</button>
+          </div>
+        </form>
+      `;
+      document.body.appendChild(formContainer);
+
+      // Cancelar
+      formContainer.querySelector('#cancelarEdicion').onclick = () => formContainer.remove();
+
+      // Guardar cambios
+      formContainer.querySelector('form').onsubmit = async (ev) => {
+        ev.preventDefault();
+        const nuevaDescripcion = ev.target.descripcion.value;
+        const nuevaHoraInicio = ev.target.start.value;
+        const nuevaHoraFin = ev.target.end.value;
+
+        const { error: errorUpdate } = await supabase
+          .from(tipo === 'Tarea' ? 'tasks' : 'routines')
+          .update({
+            description: nuevaDescripcion,
+            start_time: nuevaHoraInicio || null,
+            end_time: nuevaHoraFin || null
+          })
+          .eq('id', id);
+
+        if (errorUpdate) {
+          console.error("Error al actualizar:", errorUpdate);
+        } else {
+          formContainer.remove();
+          cargarAgendaHoy();
+        }
+      };
+    });
   });
-});
-
-
 }
 
 cargarAgendaHoy();

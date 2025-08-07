@@ -28,10 +28,13 @@ async function cargarListaIngredientes() {
 
 // Mostrar lo que hay en la despensa
 async function cargarDespensa() {
-  const { data: despensa, error } = await supabase
-    .from('despensa')
-    .select('id, nombre, cantidad, unidad')
-    .order('nombre', { ascending: true });
+  const usuario = localStorage.getItem('usuario');
+const { data: despensa, error } = await supabase
+  .from('despensa')
+  .select('id, nombre, cantidad, unidad')
+  .eq('usuario', usuario)
+  .order('nombre', { ascending: true });
+
 
   if (error) {
     container.innerHTML = `<p>Error al cargar la despensa.</p>`;
@@ -50,8 +53,10 @@ async function cargarDespensa() {
     .select('description, cantidad, unidad');
 
   const { data: listaCompra } = await supabase
-    .from('lista_compra')
-    .select('nombre');
+  .from('lista_compra')
+  .select('nombre')
+  .eq('usuario', usuario);
+
 
   const nombresEnLista = listaCompra?.map(i => i.nombre.toLowerCase()) ?? [];
 
@@ -143,9 +148,11 @@ if (form) {
       return;
     }
 
-    const { error } = await supabase
-      .from('despensa')
-      .insert([{ nombre, cantidad, unidad }]);
+    const usuario = localStorage.getItem('usuario');
+const { error } = await supabase
+  .from('despensa')
+  .insert([{ nombre, cantidad, unidad, usuario }]);
+
 
     if (error) {
       alert('Error al guardar el ingrediente: ' + error.message);

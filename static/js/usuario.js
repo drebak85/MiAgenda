@@ -18,16 +18,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Toggle del menú
-  const btnMenu = document.getElementById("usuario-menu-btn");
-  const menuUsuario = document.getElementById("menu-usuario");
+const btnMenu = document.getElementById("usuario-menu-btn");
+const menuUsuario = document.getElementById("menu-usuario");
+if (btnMenu && menuUsuario) {
   btnMenu.addEventListener("click", () => {
     menuUsuario.classList.toggle("oculto");
   });
+}
 
-  // Cerrar sesión
-  const btnLogout = document.getElementById("cerrar-sesion");
+const btnLogout = document.getElementById("cerrar-sesion");
+if (btnLogout) {
   btnLogout.addEventListener("click", async () => {
     await supabase.auth.signOut();
     window.location.href = "/login";
   });
+}
+
 });
+
+export function getUsuarioActivo() {
+  const usuario = localStorage.getItem('usuario');
+  return usuario || null;
+}
