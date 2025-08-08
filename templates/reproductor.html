@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Mi Reproductor de Audio</title>
+
+  <!-- Enlace a tu hoja de estilos principal -->
+  <link href="/static/css/style.css" rel="stylesheet"/>
+  <!-- Font Awesome para los iconos -->
+  <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer" rel="stylesheet"/>
+  <!-- Tailwind CSS CDN para un estilo moderno -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #1a202c; color: #fff; }
+    .btn-custom {
+      @apply text-white font-bold py-2 px-4 rounded-full transition-all duration-300 transform hover:scale-105;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+  <main class="w-full max-w-2xl bg-gray-800 rounded-lg shadow-2xl p-8 space-y-6">
+
+    <!-- Sección del Encabezado -->
+    <header class="text-center">
+      <a href="/" class="flex items-center text-gray-400 hover:text-white transition-colors duration-200 mb-4">
+        <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+      </a>
+      <h1 class="text-4xl font-bold text-teal-400">Reproductor de Audio</h1>
+      <p id="user-info" class="text-gray-400 mt-2">Cargando usuario...</p>
+    </header>
+
+    <!-- Sección para añadir música -->
+    <section class="bg-gray-700 p-6 rounded-lg shadow-inner">
+      <h2 class="text-2xl font-bold text-white mb-4">Añadir Nueva Canción</h2>
+      <form id="add-song-form" class="space-y-4">
+        <input id="song-title-input" type="text" placeholder="Título de la canción" required 
+               class="w-full p-3 rounded-md bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500"/>
+        <input id="song-file-input" type="file" accept="audio/mp3,audio/*" required
+               class="w-full p-3 rounded-md bg-gray-800 text-white border border-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-500 file:text-white hover:file:bg-teal-600"/>
+        <button type="submit" id="add-song-button"
+                class="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105">
+          Añadir a mi biblioteca
+        </button>
+      </form>
+    </section>
+
+    <!-- Sección del reproductor de música -->
+    <section class="bg-gray-700 p-6 rounded-lg shadow-inner">
+      <h2 class="text-2xl font-bold text-white mb-4">Reproductor</h2>
+      <div id="player-container" class="space-y-4 text-center">
+        <p id="current-song-title" class="text-xl font-bold text-teal-400">Ninguna canción seleccionada</p>
+        <audio id="audio-player" controls class="w-full hidden">
+          Tu navegador no soporta el elemento de audio.
+        </audio>
+      </div>
+    </section>
+
+    <!-- Sección de la biblioteca musical -->
+    <section class="bg-gray-700 p-6 rounded-lg shadow-inner">
+      <h2 class="text-2xl font-bold text-white mb-4">Mi Biblioteca</h2>
+      <div id="songs-list" class="space-y-3">
+        <!-- Las canciones se cargarán aquí -->
+        <p class="text-center text-gray-400">No hay canciones en tu biblioteca. ¡Añade algunas!</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="{{ url_for('static', filename='js/supabaseClient.js') }}" type="module"></script>
+  <script type="module">
+    // Importamos el cliente de Supabase desde tu archivo
+    import { supabase } from '/static/js/supabaseClient.js';
+
+    // Referencias a los elementos del DOM
+    const userInfoEl = document.getElementById('user-info');
+    const addSongForm = document.getElementById('add-song-form');
+    const songTitleInput = document.getElementById('song-title-input');
+    const songFileInput = document.getElementById('song-file-input'); // Modificado para el input de archivo
+    const addSongButton = document.getElementById('add-song-button');
+    const songsListEl = document.getElementById('songs-list');
+    const audioPlayer = document.getElementById('audio-player');
+    const currentSongTitle = document.getElementById('current-song-title');
+
+    let userId = null;
+    let songsQueue = [];
+let currentIndex = 0;
+
+
+    // Función para manejar la autenticación
+    const handleAuth = async () => {
+      // Usamos el método de Supabase para obtener la sesión actual
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        userId = session.user.id;
+        userInfoEl.textContent = `ID de Usuario: ${userId}`;
+        console.log("Usuario autenticado:", userId);
+        fetchSongs();
+      } else {
+        // Si no hay sesión, intentamos iniciar sesión de forma anónima
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (error) {
+          console.error("Error al iniciar sesión anónima:", error.message);
+          userInfoEl.textContent = `Error: ${error.message}`;
+        } else {
+          userId = data.user.id;
+          userInfoEl.textContent = `ID de Usuario: ${userId} (Anónimo)`;
+          console.log("Sesión anónima iniciada:", userId);
+          fetchSongs();
+        }
+      }
+    };
+
+    // Función para obtener y mostrar las canciones del usuario
+    const fetchSongs = async () => {
+      if (!userId) return;
+      
+      const { data, error } = await supabase
+        .from('music')
+        .select('*')
+        .eq('user_id', userId); // Filtramos por el ID del usuario
+
+      if (error) {
+        console.error("Error al obtener las canciones:", error.message);
+        songsListEl.innerHTML = `<p class="text-red-400 text-center">Error al cargar las canciones.</p>`;
+        return;
+      }
+
+      renderSongs(data);
+    };
+
+    // Función para renderizar la lista de canciones en el DOM
+    const renderSongs = (songs) => {
+  songsQueue = songs;
+  currentIndex = 0;
+
+  if (songs.length === 0) {
+    songsListEl.innerHTML = `<p class="text-center text-gray-400">No hay canciones en tu biblioteca. ¡Añade algunas!</p>`;
+    return;
+  }
+
+  // Renderizado visual de la lista
+  songsListEl.innerHTML = songs.map((song, index) => `
+    <li class="flex items-center justify-between bg-gray-800 p-4 rounded-md shadow-md hover:bg-gray-700 transition-colors duration-200">
+      <span class="text-lg flex-grow font-medium text-gray-200">${song.title}</span>
+      <div class="flex space-x-2">
+        <button data-index="${index}" class="play-button bg-purple-500 hover:bg-purple-600 text-white py-1 px-3 rounded-full transition-all duration-300 transform hover:scale-105">
+          Reproducir
+        </button>
+        <button data-id="${song.id}" class="delete-button bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-full transition-all duration-300 transform hover:scale-105">
+          Eliminar
+        </button>
+      </div>
+    </li>
+  `).join('');
+
+  // Reproducción manual
+  document.querySelectorAll('.play-button').forEach(button => {
+    button.addEventListener('click', (e) => {
+      currentIndex = parseInt(e.target.dataset.index);
+      playCurrentSong();
+    });
+  });
+
+  document.querySelectorAll('.delete-button').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const songId = e.target.dataset.id;
+      handleDeleteSong(songId);
+    });
+  });
+
+  // Escucha cuando termina la canción
+  audioPlayer.addEventListener('ended', () => {
+    currentIndex++;
+    if (currentIndex < songsQueue.length) {
+      playCurrentSong();
+    }
+  });
+};
+
+
+      // Añadir event listeners a los botones de forma dinámica
+
+
+      document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const songId = e.target.dataset.id;
+          handleDeleteSong(songId);
+        });
+      });
+   
+
+    // Función para añadir una nueva canción
+    const handleAddSong = async (e) => {
+      e.preventDefault();
+      const title = songTitleInput.value;
+      const file = songFileInput.files[0];
+
+      if (!title || !file || !userId) {
+        console.error("Faltan datos o el usuario no está autenticado.");
+        return;
+      }
+
+      addSongButton.textContent = 'Añadiendo...';
+      addSongButton.disabled = true;
+
+      try {
+        // Generamos una ruta única para el archivo en el bucket de Supabase
+        const filePath = `${userId}/${Date.now()}_${file.name}`;
+        
+        // Subimos el archivo a Supabase Storage. Usamos 'audios' como nombre del bucket.
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('audios') // ¡AQUÍ ESTÁ EL CAMBIO!
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error("Error al subir el archivo:", uploadError.message);
+          alert('Error al subir el archivo: ' + uploadError.message);
+          return;
+        }
+
+        // Obtenemos la URL pública del archivo subido
+        const { data: urlData } = supabase.storage
+          .from('audios') // ¡AQUÍ ESTÁ EL CAMBIO!
+          .getPublicUrl(filePath);
+
+        const url = urlData.publicUrl;
+
+        // Insertamos el título y la URL en la tabla 'music'
+        const { error: insertError } = await supabase
+          .from('music')
+          .insert([{ title, url, user_id: userId }]);
+
+        if (insertError) {
+          console.error("Error al añadir la canción en la base de datos:", insertError.message);
+          alert('Error al añadir la canción: ' + insertError.message);
+        } else {
+          songTitleInput.value = '';
+          songFileInput.value = ''; // Limpiamos el input del archivo
+          fetchSongs(); // Volvemos a cargar la lista
+        }
+
+      } catch (error) {
+        console.error("Error inesperado:", error.message);
+        alert('Ocurrió un error inesperado.');
+      } finally {
+        addSongButton.textContent = 'Añadir a mi biblioteca';
+        addSongButton.disabled = false;
+      }
+    };
+
+    // Función para eliminar una canción
+    const handleDeleteSong = async (songId) => {
+      if (!userId) return;
+
+      const { error } = await supabase
+        .from('music')
+        .delete()
+        .eq('id', songId)
+        .eq('user_id', userId); // Aseguramos que solo el usuario pueda borrar su propia música
+
+      if (error) {
+        console.error("Error al eliminar la canción:", error.message);
+        alert('Error al eliminar la canción: ' + error.message);
+      } else {
+        fetchSongs(); // Volvemos a cargar la lista
+      }
+    };
+
+    function playCurrentSong() {
+  const song = songsQueue[currentIndex];
+  if (!song) return;
+
+  audioPlayer.src = song.url;
+  currentSongTitle.textContent = `▶️ Reproduciendo: ${song.title}`;
+  audioPlayer.classList.remove('hidden');
+  audioPlayer.play();
+}
+
+
+    // Event listeners
+    window.addEventListener('load', handleAuth);
+    addSongForm.addEventListener('submit', handleAddSong);
+  </script>
+</body>
+</html>

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,6 +7,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="/static/favicon.png">
+  <style>
+    /* Estilos para mostrar/ocultar los formularios */
+    .hidden-form {
+      display: none;
+    }
+  </style>
 </head>
 <body class="min-h-screen flex items-center justify-center bg-gray-900 text-white font-sans p-4">
   <div class="w-full max-w-[480px] bg-gray-800/80 backdrop-blur-md rounded-3xl shadow-2xl p-6">
@@ -16,95 +21,37 @@
       <h2 class="text-lg mb-4 uppercase tracking-widest text-white">Iniciar sesión</h2>
     </div>
 
-    <div id="quick-login-container" class="mb-4 hidden">
-      <button id="quick-login-btn" class="w-full py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg">
-        Entrar como <span id="quick-username"></span>
-      </button>
+    <!-- Sección de Login -->
+    <div id="login-section">
+      <form id="login-form" class="space-y-4">
+        <input type="text" id="login-username" placeholder="Email" class="w-full px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none" />
+        <input type="password" id="login-password" placeholder="Contraseña" class="w-full px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none" />
+        <span id="login-error-msg" class="text-red-500 text-sm"></span>
+        <button type="submit" class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors duration-200">Entrar</button>
+      </form>
+      <div class="mt-4 text-sm text-center">
+        <a href="#" id="show-register-form" class="text-blue-300 hover:underline">¿No tienes cuenta? Regístrate aquí</a>
+      </div>
     </div>
 
-    <form id="login-form" class="space-y-4">
-      <input type="text" id="username" placeholder="Usuario" class="w-full px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none" />
-      <input type="password" id="password" placeholder="Contraseña" class="w-full px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none" />
-      <button type="submit" class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg">Entrar</button>
-    </form>
-
-    <div class="mt-4 text-sm text-center">
-      <a href="#" id="toggle-register" class="text-blue-300 hover:underline">¿No tienes cuenta? Regístrate aquí</a>
+    <!-- Sección de Registro (oculta por defecto) -->
+    <div id="register-section" class="hidden-form">
+      <div class="text-center">
+        <h2 class="text-lg mb-4 uppercase tracking-widest text-white">Registro</h2>
+      </div>
+      <form id="register-form" class="space-y-4 mt-6">
+        <input type="text" id="register-username" placeholder="Email" class="w-full px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none" />
+        <input type="password" id="register-password" placeholder="Contraseña" class="w-full px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none" />
+        <span id="register-error-msg" class="text-red-500 text-sm"></span>
+        <span id="register-success-msg" class="text-green-500 text-sm"></span>
+        <button type="submit" class="w-full py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors duration-200">Registrar</button>
+      </form>
+      <div class="mt-4 text-sm text-center">
+        <a href="#" id="show-login-form" class="text-blue-300 hover:underline">¿Ya tienes cuenta? Inicia sesión</a>
+      </div>
     </div>
-
-    <form id="register-form" class="space-y-4 hidden mt-6">
-      <input type="text" id="register-username" placeholder="Usuario" class="w-full px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none" />
-      <input type="password" id="register-password" placeholder="Contraseña" class="w-full px-4 py-2 bg-gray-100 text-black rounded-lg focus:outline-none" />
-      <button type="submit" class="w-full py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg">Registrarse</button>
-    </form>
   </div>
 
-  <script>
-    const loginForm = document.getElementById("login-form");
-    const registerForm = document.getElementById("register-form");
-    const toggleRegister = document.getElementById("toggle-register");
-    const quickLoginContainer = document.getElementById("quick-login-container");
-    const quickLoginBtn = document.getElementById("quick-login-btn");
-    const quickUsername = document.getElementById("quick-username");
-
-    toggleRegister.addEventListener("click", () => {
-      loginForm.classList.toggle("hidden");
-      registerForm.classList.toggle("hidden");
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedUser = localStorage.getItem("usuario");
-      if (savedUser) {
-        quickUsername.textContent = savedUser;
-        quickLoginContainer.classList.remove("hidden");
-      }
-
-      quickLoginBtn.addEventListener("click", () => {
-        document.getElementById("username").value = savedUser;
-        document.getElementById("password").focus();
-      });
-    });
-
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("usuario", username);
-        window.location.href = "/";
-      } else {
-        alert(data.message);
-      }
-    });
-
-    registerForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("register-username").value;
-      const password = document.getElementById("register-password").value;
-
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert("Usuario registrado correctamente");
-        loginForm.classList.remove("hidden");
-        registerForm.classList.add("hidden");
-      } else {
-        alert(data.message);
-      }
-    });
-  </script>
+  <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>

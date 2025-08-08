@@ -485,6 +485,10 @@
       <button class="icon-button" onclick="window.location.href='/registro'">
         <i class="fas fa-clipboard"></i><span>Registro</span>
       </button>
+      <button class="icon-button" onclick="window.location.href='/reproductor'">
+  <i class="fas fa-music"></i><span>Audio</span>
+</button>
+
 
       <button class="icon-button" onclick="window.location.href='/ejercicio'">
         <i class="fas fa-dumbbell"></i><span>Ejercicio</span>
@@ -515,7 +519,7 @@
 </body>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const username = localStorage.getItem("username");
+const username = localStorage.getItem("usuario_actual");
   if (username) {
     document.getElementById("nombre-usuario").textContent = username;
   }
