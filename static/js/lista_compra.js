@@ -1,4 +1,7 @@
 import { supabase } from './supabaseClient.js';
+import { getUsuarioActivo } from './usuario.js';
+
+
 
 const form = document.getElementById('form-lista');
 const inputNombre = document.getElementById('nombre-item');
@@ -16,9 +19,15 @@ form.addEventListener('submit', async (e) => {
   const texto = inputNombre.value.trim().toLowerCase();
   if (!texto) return;
 
+  const usuario = getUsuarioActivo(); // ✅ Lo necesitas aquí antes
+  localStorage.setItem("usuario_actual", usuario);
+
   const { data: ingredientes } = await supabase
     .from('ingredientes')
-    .select('description');
+    .select('description, supermercado, precio, cantidad, unidad')
+    .eq('usuario', usuario);
+
+
 
   const normalizar = str => str.toLowerCase().trim().replace(/(es|s)$/, '');
   const existentes = new Set(ingredientes.map(i => normalizar(i.description)));
@@ -52,17 +61,18 @@ form.addEventListener('submit', async (e) => {
 
   const nombres = [...new Set(resultado.map(s => s.trim()).filter(Boolean))];
   for (const nombre of nombres) {
-const usuario = localStorage.getItem('usuario');
+const usuario = getUsuarioActivo();
 await supabase.from('lista_compra').insert([{ nombre, usuario }]);
   }
 
   inputNombre.value = '';
   cargarLista();
   cargarPendientes();
+  actualizarContadorLista();
 });
 
 async function cargarLista() {
-  const usuario = localStorage.getItem('usuario');
+const usuario = getUsuarioActivo();
 const { data: lista } = await supabase
   .from('lista_compra')
   .select('id, nombre, completado, cantidad, unidad')
@@ -273,6 +283,7 @@ function editarItem(e) {
     li.classList.remove('editando');
     cargarLista();
     cargarPendientes();
+    actualizarContadorLista();
   });
 
   form.querySelector('.cancelar-edicion').addEventListener('click', () => {
@@ -283,7 +294,7 @@ function editarItem(e) {
 
 
 document.getElementById('agregar-completados-despensa').addEventListener('click', async () => {
-  const usuario = localStorage.getItem('usuario');
+  const usuario = getUsuarioActivo();
 const { data: completados } = await supabase
   .from('lista_compra')
   .select('*')
@@ -333,6 +344,8 @@ const { data: completados } = await supabase
 
   cargarLista();
   cargarPendientes();
+  actualizarContadorLista();
+
 });
 
 
@@ -421,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .maybeSingle();
 
     if (!yaExiste) {
-      const usuario = localStorage.getItem('usuario');
+      const usuario = getUsuarioActivo();
 await supabase.from('lista_compra').insert([
   { nombre, cantidad: item.cantidad, unidad: item.unidad, usuario }
 ]);
@@ -431,8 +444,27 @@ await supabase.from('lista_compra').insert([
 
   cargarLista(); // recarga visual
   cargarPendientes();
+  actualizarContadorLista();
 }
 
+
+
 });
+
+async function actualizarContadorLista() {
+const usuario = getUsuarioActivo();
+const { data, error } = await supabase
+  .from('lista_compra')
+  .select('id')
+  .eq('usuario', usuario)
+  .eq('completado', false); // ✅ Solo los no completados
+
+
+  const cantidad = data?.length ?? 0;
+
+  document.querySelectorAll('.contador-lista').forEach(span => {
+    span.textContent = cantidad;
+  });
+}
 
 

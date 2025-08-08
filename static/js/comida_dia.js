@@ -1,5 +1,7 @@
 import { supabase } from './supabaseClient.js';
 import { calcularTotalesReceta } from '../utils/calculos_ingredientes.js';
+import { getUsuarioActivo } from './usuario.js';
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const contenedor = document.getElementById('comida-container');
@@ -25,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function cargarComidaDelDia() {
     const hoy = new Date().toISOString().split('T')[0];
 
-const usuario = localStorage.getItem('usuario');
+const usuario = getUsuarioActivo();
 
 const { data, error } = await supabase
   .from('comidas_dia')
@@ -77,7 +79,8 @@ const { data, error } = await supabase
         const { data: ingData } = await supabase
           .from('ingredientes_base')
           .select('id, description, precio, cantidad, calorias, proteinas, unidad')
-          .in('id', idsIngredientes);
+          .in('id', idsIngredientes)
+          .eq('usuario', usuario);
 
         ingData.forEach(ing => ingredientesMap.set(ing.id, ing));
       }
@@ -105,7 +108,7 @@ const { data, error } = await supabase
             const nombre = ingBase.description;
             const cantidadUsada = parseFloat(ing.cantidad);
 
-            const usuario = localStorage.getItem('usuario');
+const usuario = getUsuarioActivo();
 const { data: despensaItem } = await supabase
   .from('despensa')
   .select('id, cantidad')

@@ -1,4 +1,5 @@
 // static/js/login.js
+import { supabase } from './supabaseClient.js';
 
 // Obtener referencias a las secciones y enlaces de alternancia
 const loginSection = document.getElementById('login-section');
@@ -6,125 +7,227 @@ const registerSection = document.getElementById('register-section');
 const showRegisterFormLink = document.getElementById('show-register-form');
 const showLoginFormLink = document.getElementById('show-login-form');
 
-// Obtener referencias a los formularios y sus elementos
+// Formularios
 const loginForm = document.getElementById('login-form');
 const loginUsernameInput = document.getElementById('login-username');
 const loginPasswordInput = document.getElementById('login-password');
 const loginErrorMsg = document.getElementById('login-error-msg');
-const loginButton = loginForm.querySelector('button[type="submit"]');
+const loginButton = loginForm?.querySelector('button[type="submit"]');
 
 const registerForm = document.getElementById('register-form');
 const registerUsernameInput = document.getElementById('register-username');
 const registerPasswordInput = document.getElementById('register-password');
 const registerErrorMsg = document.getElementById('register-error-msg');
 const registerSuccessMsg = document.getElementById('register-success-msg');
-const registerButton = registerForm.querySelector('button[type="submit"]');
+const registerButton = registerForm?.querySelector('button[type="submit"]');
 
-// --- Funcionalidad para mostrar/ocultar formularios ---
-showRegisterFormLink.addEventListener('click', (e) => {
-  e.preventDefault(); // Evitar que el enlace recargue la página
-  loginSection.classList.add('hidden-form'); // Ocultar sección de login
-  registerSection.classList.remove('hidden-form'); // Mostrar sección de registro
-  // Limpiar mensajes de error/éxito al cambiar de formulario
-  loginErrorMsg.textContent = '';
-  registerErrorMsg.textContent = '';
-  registerSuccessMsg.textContent = '';
-});
-
-showLoginFormLink.addEventListener('click', (e) => {
-  e.preventDefault(); // Evitar que el enlace recargue la página
-  registerSection.classList.add('hidden-form'); // Ocultar sección de registro
-  loginSection.classList.remove('hidden-form'); // Mostrar sección de login
-  // Limpiar mensajes de error/éxito al cambiar de formulario
-  loginErrorMsg.textContent = '';
-  registerErrorMsg.textContent = '';
-  registerSuccessMsg.textContent = '';
-});
-
-// --- Lógica para el formulario de Inicio de Sesión ---
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const username = loginUsernameInput.value.trim();
-  const password = loginPasswordInput.value;
-
-  loginErrorMsg.textContent = ''; // Limpiar mensajes de error previos
-  loginButton.disabled = true; // Deshabilitar el botón para evitar envíos múltiples
-  loginButton.textContent = 'Iniciando sesión...'; // Mostrar un mensaje de carga
-
-  try {
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-  localStorage.setItem("usuario_actual", data.username);  // ✅ NECESARIO para tareas
-  localStorage.setItem("username", data.username);         // Opcional
-  localStorage.setItem("user_id", data.user_id);           // Opcional
-  console.log("Usuario guardado:", data.username);
-  window.location.href = '/';
+// Validación de email
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
- else {
-      loginErrorMsg.textContent = data.message || 'Error desconocido al iniciar sesión.';
+// Mostrar / ocultar formularios
+if (showRegisterFormLink && loginSection && registerSection) {
+  showRegisterFormLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginSection.classList.add('hidden-form');
+    registerSection.classList.remove('hidden-form');
+    loginErrorMsg.textContent = '';
+    registerErrorMsg.textContent = '';
+    registerSuccessMsg.textContent = '';
+  });
+}
+
+if (showLoginFormLink && loginSection && registerSection) {
+  showLoginFormLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerSection.classList.add('hidden-form');
+    loginSection.classList.remove('hidden-form');
+    loginErrorMsg.textContent = '';
+    registerErrorMsg.textContent = '';
+    registerSuccessMsg.textContent = '';
+  });
+}
+
+// Lógica de registro
+if (registerForm) {
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = registerUsernameInput.value.trim();
+    const password = registerPasswordInput.value.trim();
+
+    // Validaciones
+    if (!isValidEmail(email)) {
+      registerErrorMsg.textContent = 'Por favor ingresa un email válido';
+      return;
     }
-  } catch (error) {
-    console.error('Error en la solicitud de login:', error);
-    loginErrorMsg.textContent = 'No se pudo conectar con el servidor. Inténtalo de nuevo más tarde.';
-  } finally {
-    loginButton.disabled = false; // Habilitar el botón de nuevo
-    loginButton.textContent = 'Entrar'; // Restaurar el texto del botón
-  }
-});
 
-// --- Lógica para el formulario de Registro ---
-registerForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const username = registerUsernameInput.value.trim();
-  const password = registerPasswordInput.value;
-
-  registerErrorMsg.textContent = '';   // Limpiar mensajes de error previos
-  registerSuccessMsg.textContent = ''; // Limpiar mensajes de éxito previos
-  registerButton.disabled = true; // Deshabilitar el botón para evitar envíos múltiples
-  registerButton.textContent = 'Registrando...'; // Mostrar un mensaje de carga
-
-  try {
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) { // Si la respuesta es exitosa (código 200 o 201)
-      registerSuccessMsg.textContent = data.message; // Mostrar mensaje de éxito
-      // Opcional: limpiar los campos del formulario después de un registro exitoso
-      registerUsernameInput.value = '';
-      registerPasswordInput.value = '';
-      // Redirigir al usuario a la página de login después de un breve retraso
-      setTimeout(() => {
-        loginSection.classList.remove('hidden-form'); // Mostrar sección de login
-        registerSection.classList.add('hidden-form'); // Ocultar sección de registro
-        loginErrorMsg.textContent = ''; // Limpiar mensajes de error de login
-      }, 2000); // Redirige después de 2 segundos
-    } else {
-      registerErrorMsg.textContent = data.message || 'Error desconocido al registrar usuario.';
+    if (password.length < 6) {
+      registerErrorMsg.textContent = 'La contraseña debe tener al menos 6 caracteres';
+      return;
     }
-  } catch (error) {
-    console.error('Error en la solicitud de registro:', error);
-    registerErrorMsg.textContent = 'No se pudo conectar con el servidor. Inténtalo de nuevo más tarde.';
-  } finally {
-    registerButton.disabled = false; // Habilitar el botón de nuevo
-    registerButton.textContent = 'Registrar'; // Restaurar el texto del botón
-  }
-});
+
+    registerErrorMsg.textContent = '';
+    registerSuccessMsg.textContent = '';
+    if (registerButton) {
+      registerButton.disabled = true;
+      registerButton.textContent = 'Registrando...';
+    }
+
+    try {
+      // 1. Registrar usuario en Auth
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      // 2. Verificar si el usuario ya existe en la tabla 'usuarios'
+      const { data: existingUser, error: selectError } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (selectError) {
+        console.error('Error verificando usuario:', selectError);
+      }
+
+      // 3. Insertar en tabla 'usuarios' solo si no existe
+      if (!existingUser) {
+        const { error: insertError } = await supabase
+          .from('usuarios')
+          .insert([{
+            id: data.user.id,
+            username: email,
+            role: 'user',
+          }]);
+
+        if (insertError) {
+          throw insertError;
+        }
+      }
+
+      // 4. Iniciar sesión automáticamente
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        registerSuccessMsg.textContent = 'Registro exitoso. Por favor inicia sesión manualmente.';
+        return;
+      }
+
+      // 5. Obtener datos del usuario y redirigir
+      const { data: perfil, error: userError } = await supabase
+        .from('usuarios')
+        .select('username, role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (userError) {
+        throw userError;
+      }
+
+      localStorage.setItem("usuario_actual", perfil.username);
+      localStorage.setItem("rol_usuario", perfil.role);
+      window.location.href = "/";
+
+    } catch (error) {
+      console.error('Error en registro:', error);
+      
+      if (error.message.includes('duplicate key value violates unique constraint "usuarios_pkey"')) {
+        // Si el usuario ya existe, intentamos iniciar sesión directamente
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) {
+          registerErrorMsg.textContent = 'El usuario ya existe. Por favor inicia sesión.';
+        } else {
+          // Obtener datos del usuario existente
+          const { data: { user } } = await supabase.auth.getUser();
+          const { data: perfil } = await supabase
+            .from('usuarios')
+            .select('username, role')
+            .eq('id', user.id)
+            .single();
+
+          localStorage.setItem("usuario_actual", perfil.username);
+          localStorage.setItem("rol_usuario", perfil.role);
+          window.location.href = "/";
+        }
+      } else {
+        registerErrorMsg.textContent = error.message || 'No se pudo completar el registro.';
+      }
+    } finally {
+      if (registerButton) {
+        registerButton.disabled = false;
+        registerButton.textContent = 'Registrar';
+      }
+    }
+  });
+}
+
+// Lógica de inicio de sesión
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = loginUsernameInput.value.trim();
+    const password = loginPasswordInput.value.trim();
+
+    loginErrorMsg.textContent = '';
+    if (loginButton) {
+      loginButton.disabled = true;
+      loginButton.textContent = 'Iniciando sesión...';
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Obtener el nombre de usuario y rol desde la tabla usuarios
+      const { data: perfil, error: userError } = await supabase
+        .from('usuarios')
+        .select('username, role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (userError) {
+        throw userError;
+      }
+
+      localStorage.setItem("usuario_actual", perfil.username);
+      localStorage.setItem("rol_usuario", perfil.role);
+      window.location.href = "/";
+
+    } catch (error) {
+      console.error('Error en inicio de sesión:', error);
+      
+      if (error.message.includes('Email not confirmed')) {
+        loginErrorMsg.textContent = 'Debes verificar tu correo electrónico antes de iniciar sesión.';
+      } else if (error.message.includes('Invalid login credentials')) {
+        loginErrorMsg.textContent = 'Email o contraseña incorrectos.';
+      } else {
+        loginErrorMsg.textContent = error.message || 'No se pudo iniciar sesión. Verifica tus credenciales.';
+      }
+    } finally {
+      if (loginButton) {
+        loginButton.disabled = false;
+        loginButton.textContent = 'Entrar';
+      }
+    }
+  });
+}

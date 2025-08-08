@@ -198,18 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Lógica para guardar diferentes tipos de actividades
-    if (tipoSeleccionado === 'Receta') {
-      if (typeof guardarReceta === 'function') {
-        await guardarReceta(); // Llama a la función para guardar la receta
-        form.reset(); // Resetea el formulario
-        formulariosActividad.classList.add('oculto'); // Oculta los formularios
-        tipoSeleccionado = null; // Resetea el tipo seleccionado
-      } else {
-        console.error('guardarReceta() no está disponible');
-        // Considerar usar un modal personalizado en lugar de alert()
-      }
-      return; // Sale de la función ya que la receta se maneja por separado
-    }
+if (tipoSeleccionado === 'Receta') {
+  if (typeof guardarReceta === 'function') {
+    const usuario = localStorage.getItem('usuario_actual') || "desconocido"; // ✅ AÑADIDO AQUÍ
+    await guardarReceta(usuario); // ✅ Ya funciona correctamente
+    form.reset(); 
+    formulariosActividad.classList.add('oculto'); 
+    tipoSeleccionado = null;
+  } else {
+    console.error('guardarReceta() no está disponible');
+  }
+  return;
+}
+
 
     if (tipoSeleccionado === 'Tarea') {
       try {

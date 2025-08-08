@@ -1,4 +1,6 @@
 import { supabase } from './supabaseClient.js';
+import { getUsuarioActivo } from './usuario.js';
+
 
 export async function guardarIngrediente() {
   const nombre = document.getElementById('ingrediente-nombre').value.trim();
@@ -14,8 +16,11 @@ export async function guardarIngrediente() {
     return;
   }
 
-  const { error } = await supabase.from('ingredientes_supermercado').insert([
-{
+const usuario = localStorage.getItem('usuario_actual');
+
+
+const { error } = await supabase.from('ingredientes').insert([
+  {
     nombre,
     supermercado,
     precio,
@@ -23,8 +28,11 @@ export async function guardarIngrediente() {
     unidad,
     calorias,
     proteinas,
+    usuario, // 👈 AÑADIR ESTA LÍNEA
     fecha_creacion: new Date().toISOString()
-  }]);
+  }
+]);
+
 
   if (error) {
     alert("Error al guardar ingrediente");
@@ -43,3 +51,28 @@ document.getElementById('cancelar-ingrediente').addEventListener('click', (e) =>
   e.preventDefault();
   document.getElementById('formulario-ingrediente').classList.add('oculto');
 });
+
+async function cargarIngredientes() {
+  const usuario = getUsuarioActivo();
+  const { data, error } = await supabase
+    .from('ingredientes')
+    .select('*')
+    .eq('usuario', usuario)
+    .order('fecha_creacion', { ascending: false });
+
+  if (error) {
+    console.error('Error al cargar ingredientes:', error);
+    return;
+  }
+
+  const contenedor = document.getElementById('lista-ingredientes');
+  contenedor.innerHTML = '';
+
+  data.forEach((ing) => {
+    const item = document.createElement('div');
+    item.textContent = `${ing.nombre} – ${ing.cantidad} ${ing.unidad}`;
+    contenedor.appendChild(item);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', cargarIngredientes);

@@ -4,9 +4,16 @@ import { displayCurrentDateTime } from './current-date.js';
 import { supabase } from './supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Modal eliminado
+  // Primero, verificamos la sesión de Supabase
+  const { data: { session } } = await supabase.auth.getSession();
 
-  // Muestra la fecha y hora actual al cargar la página.
+  if (!session) {
+    // Si no hay sesión, redirigimos al login
+    window.location.href = "/login";
+    return;
+  }
+
+  // Ahora que sabemos que el usuario está autenticado, podemos continuar con la lógica existente
   displayCurrentDateTime();
 
   // Rellena la cantidad total en la despensa si es nula.
@@ -15,23 +22,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Verifica la despensa y actualiza la lista de la compra, obteniendo el número de elementos faltantes.
   await verificarDespensaYActualizar(); // No necesitamos el valor de retorno aquí directamente para el contador.
 
-  // Mostrar contador lista compra
-  const { data: itemsLista, error } = await supabase
-    .from('lista_compra')
-    .select('id');
+  // Mostrar contador lista compra (solo pendientes y del usuario activo)
+  const usuario = localStorage.getItem("usuario_actual");
+  if (usuario) {
+    const { data: itemsLista, error } = await supabase
+      .from('lista_compra')
+      .select('id')
+      .eq('usuario', usuario)
+      .eq('completado', false); // ✅ solo productos pendientes
 
-  if (!error && itemsLista) {
-    const total = itemsLista.length;
-    if (total > 0) {
+    if (!error && itemsLista) {
+      const total = itemsLista.length;
       const contadorLista = document.getElementById('contador-lista');
       if (contadorLista) {
-        contadorLista.textContent = total;
-        contadorLista.style.display = 'inline-block';
-      }
-    } else {
-      const contadorLista = document.getElementById('contador-lista');
-      if (contadorLista) {
-        contadorLista.style.display = 'none'; // Ocultar si no hay elementos
+        if (total > 0) {
+          contadorLista.textContent = total;
+          contadorLista.style.display = 'inline-block';
+        } else {
+          contadorLista.style.display = 'none';
+        }
       }
     }
   }
@@ -90,8 +99,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
+
+  // BOTÓN DE CERRAR SESIÓN
+  document.getElementById("cerrar-sesion")?.addEventListener("click", async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("usuario_actual");
+      localStorage.removeItem("rol_usuario");
+      sessionStorage.clear(); // Por si se guarda algo en sesión
+      window.location.href = "/login"; // ✅ Redirige al login directamente
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      window.location.href = "/login"; // Redirige igual por si acaso
+    }
+  });
+
 });
 
+// Se mantienen tus funciones existentes sin cambios
 async function verificarDespensaYActualizar() {
   const hoy = new Date().toISOString().split('T')[0];
   const { data: comidasDia, error: err1 } = await supabase
@@ -191,46 +216,3 @@ async function rellenarCantidadTotalEnDespensa() {
       .eq('id', id);
   }
 }
-
-// Verifica la sesión real desde Flask
-fetch('/api/usuario')
-  .then(response => {
-    if (response.status === 401 || response.status === 403) {
-      // 🔁 Si no hay sesión válida, redirigir al login
-      window.location.href = "/login";
-    }
-    return response.json();
-  })
-  .then(data => {
-    if (data.username) {
-      const spanNombre = document.getElementById('nombre-usuario');
-      if (spanNombre) {
-        spanNombre.textContent = data.username;
-      }
-
-
-      // Guardamos en localStorage si no estaba
-      localStorage.setItem('usuario_actual', data.username);
-    } else {
-      // Si por algún motivo no viene username, redirigimos igual
-      window.location.href = "/login";
-    }
-  })
-  .catch(error => {
-    console.error('Error al verificar la sesión:', error);
-    window.location.href = "/login";
-  });
-
-  // BOTÓN DE CERRAR SESIÓN
-document.getElementById("cerrar-sesion")?.addEventListener("click", async () => {
-  try {
-    await fetch("/logout", { method: "POST" });
-    localStorage.removeItem("usuario_actual");
-    localStorage.removeItem("rol_usuario");
-    sessionStorage.clear(); // Por si se guarda algo en sesión
-    window.location.href = "/login"; // ✅ Redirige al login directamente
-  } catch (error) {
-    console.error("Error al cerrar sesión:", error);
-    window.location.href = "/login"; // Redirige igual por si acaso
-  }
-});

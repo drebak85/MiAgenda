@@ -1,13 +1,17 @@
 import { supabase } from './supabaseClient.js';
+import { getUsuarioActivo } from './usuario.js';
+
 
 async function cargarIngredientesPendientes() {
   const contenedor = document.getElementById('contenedor-ingredientes-pendientes');
   contenedor.innerHTML = 'Cargando...';
 
-  // 1. Obtener artículos de la despensa
-  const { data: despensa, error: errorDespensa } = await supabase
-    .from('despensa')
-    .select('*');
+const usuario = getUsuarioActivo();
+const { data: despensa, error: errorDespensa } = await supabase
+  .from('despensa')
+  .select('*')
+  .eq('usuario', usuario);
+
 
   if (errorDespensa) {
     contenedor.innerHTML = 'Error al cargar la despensa.';
@@ -15,9 +19,11 @@ async function cargarIngredientesPendientes() {
   }
 
   // 2. Obtener ingredientes ya registrados
-  const { data: ingredientes, error: errorIngredientes } = await supabase
-    .from('ingredientes')
-    .select('description');
+ const { data: ingredientes, error: errorIngredientes } = await supabase
+  .from('ingredientes')
+  .select('description')
+  .eq('usuario', usuario);
+
 
   if (errorIngredientes) {
     contenedor.innerHTML = 'Error al cargar ingredientes.';

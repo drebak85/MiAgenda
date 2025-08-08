@@ -1,6 +1,8 @@
 // calendario.js
 
 import { supabase } from "./supabaseClient.js";
+import { getUsuarioActivo } from './usuario.js';
+
 
 const calendarioGrid = document.getElementById("calendario-grid");
 const mesSelect = document.getElementById("mes-select");
@@ -38,6 +40,8 @@ function poblarSelects() {
 
 async function cargarActividades() {
   actividadesPorFecha = {}; // Limpiar actividades previas
+    const usuario = getUsuarioActivo();
+
   const pad = (n) => n.toString().padStart(2, "0");
 
   const inicioMes = `${añoActual}-${pad(mesActual + 1)}-01`;
@@ -45,12 +49,13 @@ async function cargarActividades() {
   const finMes = `${añoActual}-${pad(mesActual + 1)}-${pad(finDia)}`;
 
   // Cargar citas
-  const { data: citas, error: errorCitas } = await supabase
-    .from("appointments")
-    .select("id, description, date, start_time")
+const { data: citas, error: errorCitas } = await supabase
+  .from("appointments")
+  .select("id, description, date, start_time")
+  .gte("date", inicioMes)
+  .lte("date", finMes)
+  .eq("usuario", usuario); // ✅ Filtro añadido
 
-    .gte("date", inicioMes)
-    .lte("date", finMes);
 
   if (!errorCitas && citas) {
     citas.forEach((cita) => {
@@ -67,8 +72,10 @@ async function cargarActividades() {
 
   // Cargar rutinas
   const { data: rutinas, error: errorRutinas } = await supabase
-    .from("routines")
-    .select("id, description, days_of_week");
+  .from("routines")
+  .select("id, description, days_of_week")
+  .eq("usuario", usuario); // ✅ Filtro añadido
+
 
   if (!errorRutinas && rutinas) {
     rutinas.forEach((rutina) => {
@@ -89,10 +96,12 @@ async function cargarActividades() {
 
   // Cargar tareas
   const { data: tareas, error: errorTareas } = await supabase
-    .from("tasks")
-.select("id, description, due_date, start_time")
-    .gte("due_date", inicioMes)
-    .lte("due_date", finMes);
+  .from("tasks")
+  .select("id, description, due_date, start_time")
+  .gte("due_date", inicioMes)
+  .lte("due_date", finMes)
+  .eq("usuario", usuario); // ✅ Filtro añadido
+
 
   if (!errorTareas && tareas) {
     tareas.forEach((tarea) => {

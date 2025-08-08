@@ -2,8 +2,13 @@
 import { supabase } from './supabaseClient.js';
 import { calcularTotalesReceta } from '../utils/calculos_ingredientes.js';
 
+import { getUsuarioActivo } from './usuario.js';
+
+
 // Espera a que el DOM esté completamente cargado antes de ejecutar el script
 document.addEventListener('DOMContentLoaded', async () => {
+  const usuarioActivo = getUsuarioActivo();
+
   // Variables para almacenar los datos de ingredientes y recetas
   let ingredientes = []; // Esta variable almacenará los ingredientes_base
   let recetas = [];
@@ -102,9 +107,11 @@ document.addEventListener('DOMContentLoaded', async () => {
    * y evitar el join implícito que causaba el error de relación ambigua.
    */
   async function cargarIngredientes() {
-    const { data, error } = await supabase
-      .from('ingredientes_base')
-      .select('*');
+  const { data, error } = await supabase
+    .from('ingredientes_base')
+    .select('*')
+    .eq('usuario', usuarioActivo); // ← añade esto
+
 
     if (error) {
       console.error('Error cargando ingredientes base:', error);
@@ -183,7 +190,10 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   async function cargarRecetas() {
     // Selecciona todas las recetas
-    const { data, error } = await supabase.from('recetas').select('*');
+const { data, error } = await supabase
+  .from('recetas')
+  .select('*')
+  .eq('usuario', usuarioActivo);
     if (error) {
       console.error('Error cargando recetas:', error);
       return;
@@ -546,17 +556,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.preventDefault();
 
       const id = inputIngId.value;
-      const { error } = await supabase
-        .from('ingredientes_base')
-        .update({
-          nombre: inputIngNombre.value,
-          cantidad: parseFloat(inputIngCantidad.value),
-          unidad: inputIngUnidad.value,
-          calorias: parseFloat(inputIngCalorias.value),
-          proteinas: parseFloat(inputIngProteinas.value),
-          precio: parseFloat(inputIngPrecio.value),
-        })
-        .eq('id', id);
+     const { error } = await supabase
+  .from('ingredientes_base')
+  .update({
+    nombre: inputIngNombre.value,
+    cantidad: parseFloat(inputIngCantidad.value),
+    unidad: inputIngUnidad.value,
+    calorias: parseFloat(inputIngCalorias.value),
+    proteinas: parseFloat(inputIngProteinas.value),
+    precio: parseFloat(inputIngPrecio.value),
+    // 🔧 Añade esto:
+    usuario: usuarioActivo
+  })
+  .eq('id', id);
+
 
       if (error) {
         showCustomModal('Error al actualizar el ingrediente');
@@ -644,12 +657,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Inserta los ingredientes actualizados (incluyendo los nuevos y los modificados)
       for (const ing of ingredientesReceta) {
-        const { error: insertIngredienteError } = await supabase.from('ingredientes_receta').insert({
-          receta_id: id,
-          ingrediente_id: ing.ingrediente_id,
-          cantidad: ing.cantidad,
-          unidad: ing.unidad,
-        });
+  const { error: insertIngredienteError } = await supabase.from('ingredientes_receta').insert({
+    receta_id: id,
+    ingrediente_id: ing.ingrediente_id,
+    cantidad: ing.cantidad,
+    unidad: ing.unidad,
+    // 🔧 Añade esto:
+    usuario: usuarioActivo
+  });
+
         if (insertIngredienteError) {
           console.error('Error al insertar ingrediente de receta:', insertIngredienteError);
           showCustomModal('Error al insertar ingrediente de receta.');
@@ -660,13 +676,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       const { totalPrecio, totalCalorias, totalProteinas } = calcularTotalesReceta(ingredientesReceta, ingredientes);
 
       // Actualiza la tabla 'recetas' con los nuevos valores de nombre, instrucciones y totales
-      const { error: updateRecetaError } = await supabase.from('recetas').update({
-        nombre: nombre,
-        instrucciones: instrucciones,
-        total_precio: totalPrecio,
-        total_calorias: totalCalorias,
-        total_proteinas: totalProteinas
-      }).eq('id', id);
+    const { error: updateRecetaError } = await supabase.from('recetas').update({
+  nombre: nombre,
+  instrucciones: instrucciones,
+  total_precio: totalPrecio,
+  total_calorias: totalCalorias,
+  total_proteinas: totalProteinas,
+  // 🔧 Añade esto si no lo tiene:
+  usuario: usuarioActivo
+}).eq('id', id);
+
 
       if (updateRecetaError) {
         console.error('Error al actualizar la receta:', updateRecetaError);

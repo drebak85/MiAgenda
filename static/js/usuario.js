@@ -7,13 +7,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (user) {
     // Carga nombre de usuario desde la tabla
     const { data, error } = await supabase
-      .from("usuarios")
-      .select("username")
-      .eq("uuid", user.id)
-      .single();
+  .from("usuarios")
+  .select("username")
+  .eq("id", user.id)
+  .single();
+
 
     if (!error && data) {
-      document.getElementById("nombre-usuario").textContent = data.username;
+      const elNombre = document.getElementById("nombre-usuario");
+if (elNombre && data?.username) {
+  elNombre.textContent = data.username;
+}
+
     }
   }
 
@@ -37,6 +42,7 @@ if (btnLogout) {
 });
 
 export function getUsuarioActivo() {
-  const usuario = localStorage.getItem('usuario');
+  const usuario = localStorage.getItem('usuario_actual');
   return usuario || null;
 }
+

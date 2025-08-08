@@ -1,21 +1,26 @@
 import { supabase } from './supabaseClient.js';
 import { calcularTotalesReceta } from '../utils/calculos_ingredientes.js';
+import { getUsuarioActivo } from './usuario.js';
 
 
 let recetasDisponibles = [];
 
 async function cargarRecetas() {
   // 1. Cargar recetas con sus ingredientes
-  const { data: recetas, error } = await supabase
-    .from("recetas")
-    .select(`
-      id,
-      nombre,
-      ingredientes_receta (
-        cantidad,
-        ingrediente_id
-      )
-    `);
+const usuario = getUsuarioActivo();
+
+const { data: recetas, error } = await supabase
+  .from("recetas")
+  .select(`
+    id,
+    nombre,
+    ingredientes_receta (
+      cantidad,
+      ingrediente_id
+    )
+  `)
+  .eq("usuario", usuario); // ✅ Filtrar por el usuario activo
+
 
   if (error) {
     console.error("Error cargando recetas:", error);
@@ -35,8 +40,10 @@ async function cargarRecetas() {
   // 3. Cargar los ingredientes base necesarios
   const { data: ingredientesBase, error: errorIng } = await supabase
     .from("ingredientes_base")
-    .select("id, calorias, proteinas, cantidad, precio")
-    .in("id", Array.from(todosIds));
+.select('*')
+.in("id", Array.from(todosIds))
+.eq("usuario", usuario);
+
 
   if (errorIng) {
     console.error("Error al cargar ingredientes base:", errorIng);
@@ -71,7 +78,9 @@ async function guardarRecetaEnBD(tipo, recetaId, fecha, dia, container) {
     console.error("Fecha no definida");
     return;
   }
-  const { error } = await supabase.from("comidas_dia").insert([{ tipo, receta_id: recetaId, fecha, dia }]);
+const usuario = localStorage.getItem("usuario_actual") || "desconocido"; // ✅
+const { error } = await supabase.from("comidas_dia").insert([{ tipo, receta_id: recetaId, fecha, dia, usuario }]);
+
   if (error) {
     console.error("Error al guardar la receta:", error);
     return;
@@ -86,19 +95,22 @@ async function borrarRecetaDeBD(recetaId, tipo, fecha) {
 
 async function cargarMenuGuardado() {
   console.log("Iniciando cargarMenuGuardado...");
-  const { data, error } = await supabase
-    .from("comidas_dia")
-    .select(`
-      id, tipo, fecha, receta_id, dia,
-      recetas (
-        nombre,
-        ingredientes_receta (
-          cantidad,
-          unidad,
-          ingrediente_id
-        )
+const usuario = localStorage.getItem("usuario_actual") || "desconocido";
+const { data, error } = await supabase
+  .from("comidas_dia")
+  .select(`
+    id, tipo, fecha, receta_id, dia,
+    recetas (
+      nombre,
+      ingredientes_receta (
+        cantidad,
+        unidad,
+        ingrediente_id
       )
-    `);
+    )
+  `)
+  .eq("usuario", usuario); // ✅ Aquí añades el filtro que falta
+
 
   if (error) {
     console.error("Error al cargar el menú guardado:", error);

@@ -1,5 +1,7 @@
 import { supabase } from './supabaseClient.js';
 import { calcularTotalesReceta } from '../utils/calculos_ingredientes.js';
+import { getUsuarioActivo } from './usuario.js';
+
 
 
 function showMessageModal(mensaje) {
@@ -33,9 +35,13 @@ export async function cargarIngredientesParaReceta() {
     select.innerHTML = '<option value="">Selecciona un ingrediente</option>';
 
     // CAMBIO AQUÍ: Usar 'ingredientes_base' para consistencia con menu.js
-    const { data, error } = await supabase
-        .from('ingredientes_base') // Cambiado de 'ingredientes' a 'ingredientes_base'
-        .select('id, description, unidad, calorias, proteinas, precio, cantidad'); // Asegúrate de seleccionar 'cantidad' también
+const usuario = getUsuarioActivo();
+const { data, error } = await supabase
+  .from('ingredientes_base')
+  .select('id, description, unidad, calorias, proteinas, precio, cantidad, usuario')
+  .eq('usuario', usuario);
+
+
 
     if (error) {
         showMessageModal('Error al cargar ingredientes: ' + error.message);
@@ -116,7 +122,8 @@ export async function guardarReceta() {
     const ingredientesJSON = JSON.stringify(ingredientesRecetaSeleccionados);
 
     try {
-        const usuario = localStorage.getItem('usuario');
+const usuario = getUsuarioActivo();
+
 const { data: receta, error: recetaError } = await supabase
   .from('recetas')
   .insert([{ nombre, instrucciones, ingredientes: ingredientesJSON, usuario }])

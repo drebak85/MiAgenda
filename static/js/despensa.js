@@ -1,4 +1,6 @@
 import { supabase } from './supabaseClient.js';
+import { getUsuarioActivo } from './usuario.js';
+
 
 const container = document.getElementById('despensa-container');
 const form = document.getElementById('form-despensa');
@@ -28,7 +30,7 @@ async function cargarListaIngredientes() {
 
 // Mostrar lo que hay en la despensa
 async function cargarDespensa() {
-  const usuario = localStorage.getItem('usuario');
+const usuario = getUsuarioActivo();
 const { data: despensa, error } = await supabase
   .from('despensa')
   .select('id, nombre, cantidad, unidad')
@@ -148,7 +150,7 @@ if (form) {
       return;
     }
 
-    const usuario = localStorage.getItem('usuario');
+const usuario = getUsuarioActivo();
 const { error } = await supabase
   .from('despensa')
   .insert([{ nombre, cantidad, unidad, usuario }]);
